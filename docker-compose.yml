@@ -30,12 +30,16 @@ services:
             - "8000:8000"
         environment:
             AUTH_SERVICE_WORKERS: ${AUTH_SERVICE_WORKERS}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
 
         healthcheck:
             test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
             interval: 30s
             timeout: 10s
             retries: 3
+            start_interval: 10s
 
         depends_on:
             redis:
@@ -80,6 +84,7 @@ services:
             interval: 10s
             timeout: 3s
             retries: 3
+            start_interval: 10s
 
     redis:
         image: redis:latest
