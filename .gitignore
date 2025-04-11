@@ -1,6 +1,7 @@
 .env.postgres
 .env.s3
 .env
+.env.redis
 
 minio-data/
 postgres_data/
