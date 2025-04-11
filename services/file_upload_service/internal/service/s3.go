@@ -5,45 +5,56 @@ import (
 	"context"
 	"io"
 	"log"
+	"time"
 
 	appcfg "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-type S3Service struct {
-	Client *s3.Client
+type MinIOService struct {
+	Client *minio.Client
 	Config appcfg.Config
 }
 
-func NewS3Service(cfg appcfg.Config) *S3Service {
-	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(cfg.Region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, "")),
-	)
+func NewMinIOService(cfg appcfg.Config) *MinIOService {
+	client, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: false,
+		Region: cfg.Region,
+	})
 	if err != nil {
-		log.Fatalf("failed to load AWS config: %v", err)
+		log.Fatalf("failed to initialize MinIO client: %v", err)
 	}
 
-	client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
-		o.UsePathStyle = cfg.UsePathStyle
-		o.EndpointResolver = s3.EndpointResolverFromURL(cfg.Endpoint)
-	})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	return &S3Service{Client: client, Config: cfg}
+	exists, err := client.BucketExists(ctx, cfg.Bucket)
+	if err != nil {
+		log.Fatalf("failed to check bucket existence: %v", err)
+	}
+
+	if !exists {
+		err = client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{Region: cfg.Region})
+		if err != nil {
+			log.Fatalf("failed to create bucket: %v", err)
+		}
+	}
+
+	return &MinIOService{
+		Client: client,
+		Config: cfg,
+	}
 }
 
-func (s *S3Service) UploadStream(ctx context.Context, key string, body io.Reader) error {
-	_, err := s.Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(s.Config.Bucket),
-		Key:    aws.String(key),
-		Body:   body,
+func (s *MinIOService) UploadStream(ctx context.Context, key string, body io.Reader, size int64) error {
+	_, err := s.Client.PutObject(ctx, s.Config.Bucket, key, body, size, minio.PutObjectOptions{
+		ContentType: "application/octet-stream",
 	})
 	return err
 }
 
-func (s *S3Service) UploadChunk(ctx context.Context, key string, chunk []byte) error {
-	return s.UploadStream(ctx, key, bytes.NewReader(chunk))
+func (s *MinIOService) UploadChunk(ctx context.Context, key string, chunk []byte) error {
+	return s.UploadStream(ctx, key, bytes.NewReader(chunk), int64(len(chunk)))
 }

@@ -1,26 +1,30 @@
-FROM golang:1.22.0-alpine AS builder
 
-RUN apk add --no-cache git
+FROM ubuntu:24.10
 
-WORKDIR /file_upload_service
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    golang-go \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY go.mod go.sum ./
-RUN go mod download
+WORKDIR /file_upload
+ENV GOPATH=/go
+ENV PATH=$PATH:/usr/lib/go/bin:$GOPATH/bin
 
 COPY . .
 
-RUN go build -o file-upload ./cmd/server
 
-FROM alpine:latest
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /root/
+RUN go mod init github.com/Eglant1ne/simple_videohosting/services/file_upload_service
+RUN go mod tidy
+RUN go build ./cmd/server/
+RUN ./server
 
-RUN apk --no-cache add ca-certificates
-
-COPY --from=builder /app/file-upload .
-
-COPY .env .
 
 EXPOSE 8080
 
-CMD ["./file-upload"]
+CMD ["/bin/bash"]
