@@ -2,7 +2,7 @@ import healthcheck
 
 from fastapi import FastAPI
 
-from database.create_tables import create_tables
+import database
 from config import DEBUG_MODE
 
 app = FastAPI(docs_url='/docs' if DEBUG_MODE.debug_mode else None,
@@ -13,4 +13,4 @@ app.include_router(healthcheck.router)
 
 @app.on_event("startup")
 async def startup_event():
-    await create_tables()
+    await database.create_tables.create_tables()
