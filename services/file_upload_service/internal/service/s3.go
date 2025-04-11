@@ -24,6 +24,7 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		Region: cfg.Region,
 	})
 	if err != nil {
+	    log.Fatalf("%v", cfg.Endpoint)
 		log.Fatalf("failed to initialize MinIO client: %v", err)
 	}
 

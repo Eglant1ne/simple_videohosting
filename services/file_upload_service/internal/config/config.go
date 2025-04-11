@@ -1,10 +1,7 @@
 package config
 
 import (
-	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -16,17 +13,11 @@ type Config struct {
 }
 
 func Load() Config {
-	err := godotenv.Load("../../.env")
-
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
-
 	return Config{
 		Bucket:    os.Getenv("S3_BUCKET"),
 		Region:    os.Getenv("S3_REGION"),
-		Endpoint:  os.Getenv("S3_ENDPOINT"),
-		AccessKey: os.Getenv("S3_ACCESS_KEY"),
-		SecretKey: os.Getenv("S3_SECRET_KEY"),
+		Endpoint:  os.Getenv("MINIO_SERVER_URL"),
+		AccessKey: os.Getenv("MINIO_ROOT_USER"),
+		SecretKey: os.Getenv("MINIO_ROOT_PASSWORD"),
 	}
 }
