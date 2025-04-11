@@ -36,7 +36,7 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 	}
 
 	if !exists {
-		err = client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{Region: cfg.Region})
+		err = client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{})
 		if err != nil {
 			log.Fatalf("failed to create bucket: %v", err)
 		}
