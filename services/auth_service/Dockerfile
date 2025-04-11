@@ -1,7 +1,8 @@
 FROM python:3.12.10-slim
 
 #для healthcheck
-RUN apt-get update && -y curl \
+RUN apt-get update  \
+    && apt-get install -y curl \
     && rm -rf /var/lib/apt/lists/*
 
 

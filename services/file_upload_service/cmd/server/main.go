@@ -16,6 +16,8 @@ func main() {
 	minioSvc := service.NewMinIOService(cfg)
 
 	r := chi.NewRouter()
+    //healthcheck
+    r.Get("/health", handler.HealthCheckHandler)
 
 	r.Post("/upload", handler.FileUploadHandler(minioSvc))
 	r.Post("/upload/chunk", handler.UploadFileInChunks(minioSvc))

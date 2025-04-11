@@ -8,4 +8,9 @@ class DatabaseSettings(BaseSettings):
     password: str = Field(alias='POSTGRES_PASSWORD')
 
 
+class DebugMode(BaseSettings):
+    debug_mode: bool = Field(alias='DEBUG_MODE')
+
+
 DATABASE_SETTINGS = DatabaseSettings()
+DEBUG_MODE = DebugMode()

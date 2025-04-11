@@ -2,9 +2,11 @@ package config
 
 import (
 	"os"
+	"strings"
 )
 
 type Config struct {
+    DebugMode bool
 	Bucket    string
 	Region    string
 	Endpoint  string
@@ -14,6 +16,7 @@ type Config struct {
 
 func Load() Config {
 	return Config{
+	    DebugMode: strings.ToLower(os.Getenv("DEBUG_MODE")) == "true",
 		Bucket:    os.Getenv("S3_BUCKET"),
 		Region:    os.Getenv("S3_REGION"),
 		Endpoint:  os.Getenv("MINIO_SERVER_URL"),

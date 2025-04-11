@@ -8,11 +8,19 @@ services:
         ports:
             - "8080:8080"
         environment:
+            DEBUG_MODE: ${DEBUG_MODE}
             S3_BUCKET: files
             S3_REGION: us-east-1
             MINIO_SERVER_URL: ${MINIO_SERVER_URL}
             MINIO_ROOT_USER: ${MINIO_ROOT_USER}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_interval: 10s
 
         depends_on:
             minio:
@@ -29,6 +37,7 @@ services:
         ports:
             - "8000:8000"
         environment:
+            DEBUG_MODE: ${DEBUG_MODE}
             AUTH_SERVICE_WORKERS: ${AUTH_SERVICE_WORKERS}
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
