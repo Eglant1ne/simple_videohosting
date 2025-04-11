@@ -23,7 +23,6 @@ func FileUploadHandler(minioSvc *service.MinIOService) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		// Получаем информацию о размере файла
 		fileSize := handler.Size
 		key := handler.Filename
 
@@ -39,7 +38,6 @@ func FileUploadHandler(minioSvc *service.MinIOService) http.HandlerFunc {
 
 func UploadFileInChunks(minioSvc *service.MinIOService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Реализация chunked upload
 		chunk, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "failed to read chunk", http.StatusBadRequest)
