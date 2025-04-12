@@ -52,7 +52,7 @@ services:
             interval: 30s
             timeout: 10s
             retries: 3
-            start_interval: 10s
+            start_interval: 20s
 
         depends_on:
             redis:
@@ -81,7 +81,7 @@ services:
             interval: 30s
             timeout: 20s
             retries: 3
-            start_interval: 10s
+            start_interval: 20s
 
     postgres:
         image: postgres:latest
@@ -113,7 +113,7 @@ services:
             interval: 30s
             timeout: 10s
             retries: 3
-            start_interval: 10s
+            start_interval: 20s
 
     kafka:
         image: apache/kafka:latest
@@ -144,4 +144,4 @@ services:
             interval: 30s
             timeout: 10s
             retries: 5
-            start_interval: 10s
+            start_interval: 20s
