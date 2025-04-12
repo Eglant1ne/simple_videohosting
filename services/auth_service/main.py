@@ -1,4 +1,5 @@
 import healthcheck
+from auth import auth
 
 from fastapi import FastAPI
 
@@ -9,6 +10,7 @@ app = FastAPI(docs_url='/docs' if DEBUG_MODE.debug_mode else None,
               redoc_url='/redoc' if DEBUG_MODE.debug_mode else None)
 
 app.include_router(healthcheck.router)
+app.include_router(auth.router)
 
 
 @app.on_event("startup")
