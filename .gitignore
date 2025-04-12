@@ -1,10 +1,8 @@
-.env.postgres
-.env.s3
 .env
-.env.redis
 
 minio-data/
 postgres_data/
+kafka-data/
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,pycharm+all,goland,go,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,pycharm+all,goland,go,python
