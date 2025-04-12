@@ -22,15 +22,6 @@ def create_access_token(data: dict, expires_delta: datetime.timedelta = None) ->
     return token
 
 
-def create_access_token_payload(user: User) -> dict:
-    payload: dict = dict()
-    payload["sub"] = user.id
-    payload["jti"] = str(uuid.uuid4())
-    payload["version"] = user.token_version
-
-    return payload
-
-
 def create_refresh_token(data: dict, expires_delta: datetime.timedelta = None) -> str:
     to_encode: dict = data.copy()
     now: datetime.datetime = datetime.datetime.utcnow()
@@ -43,6 +34,15 @@ def create_refresh_token(data: dict, expires_delta: datetime.timedelta = None) -
     return token
 
 
+def create_access_token_payload(user: User) -> dict:
+    payload: dict = dict()
+    payload["sub"] = user.id
+    payload["jti"] = str(uuid.uuid4())
+    payload["version"] = user.token_version
+
+    return payload
+
+
 def create_refresh_token_payload(user: User) -> dict:
     payload: dict = dict()
     payload["sub"] = user.id
@@ -52,5 +52,3 @@ def create_refresh_token_payload(user: User) -> dict:
     return payload
 
 
-def decode_token_payload(token: str) -> dict:
-    return jwt.decode(token, RSA_KEYS.public_key, algorithms=[ALGORITHM])

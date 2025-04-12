@@ -8,3 +8,4 @@ asyncpg==0.30.0
 orjson==3.10.16
 PyJWT[crypto]==2.10.1
 passlib[bcrypt]==1.7.4
+bcrypt==4.3.0
