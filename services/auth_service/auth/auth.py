@@ -106,7 +106,7 @@ async def auth_user(user: UserLogin):
                     status_code=200
                 )
         except Exception as e:
-            ORJSONResponse(
+            return ORJSONResponse(
                     {"msg": "Ошибка аутентификации."},
                     status_code=500
                 )
