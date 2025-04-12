@@ -6,5 +6,5 @@ redis==5.2.1
 uvicorn==0.34.0
 asyncpg==0.30.0
 orjson==3.10.16
-PyJWT==2.10.1
-passlib==1.7.4
+PyJWT[crypto]==2.10.1
+passlib[bcrypt]==1.7.4
