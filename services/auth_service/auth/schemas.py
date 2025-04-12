@@ -1,12 +1,12 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, constr
 
 
 class UserLogin(BaseModel):
-    login: str
+    login: EmailStr | constr(pattern=r'^[a-zA-Z0-9_]{3,32}$')
     password: str
 
 
 class UserCreate(BaseModel):
-    email: str
-    username: str
+    email: EmailStr
+    username: constr(pattern=r'^[a-zA-Z0-9_]{3,32}$')
     password: str
