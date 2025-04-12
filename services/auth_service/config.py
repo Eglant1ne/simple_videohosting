@@ -17,6 +17,6 @@ class RSAKeys(BaseSettings):
     private_key: str = Field(alias="RSA_PRIVATE_KEY")
 
 
-DATABASE_SETTINGS = DatabaseSettings()
-DEBUG_MODE = DebugMode()
-RSA_KEYS = RSAKeys()
+DATABASE_SETTINGS: DatabaseSettings = DatabaseSettings()
+DEBUG_MODE: DebugMode = DebugMode()
+RSA_KEYS: RSAKeys = RSAKeys()

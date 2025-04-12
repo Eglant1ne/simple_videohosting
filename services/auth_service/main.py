@@ -12,5 +12,5 @@ app.include_router(healthcheck.router)
 
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     await database.create_tables.create_tables()
