@@ -1,4 +1,36 @@
 services:
+    auth_service:
+        build:
+            context: ./services/auth_service
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        ports:
+            - "8000:8000"
+        environment:
+            DEBUG_MODE: ${DEBUG_MODE}
+            AUTH_SERVICE_WORKERS: ${AUTH_SERVICE_WORKERS}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+            RSA_PUBLIC_KEY: ${RSA_PUBLIC_KEY}
+            RSA_PRIVATE_KEY: ${RSA_PRIVATE_KEY}
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_interval: 20s
+
+        depends_on:
+            redis:
+                condition: service_healthy
+            postgres:
+                condition: service_healthy
+            kafka:
+                condition: service_healthy
+
     file-upload-service:
         build:
             context: ./services/file_upload_service
@@ -31,37 +63,33 @@ services:
                 condition: service_healthy
 
 
-    auth_service:
+    channel_actions:
         build:
-            context: ./services/auth_service
+            context: ./services/channel_actions_service
             dockerfile: Dockerfile
         restart: unless-stopped
         ports:
-            - "8000:8000"
+            - "7000:7000"
         environment:
             DEBUG_MODE: ${DEBUG_MODE}
-            AUTH_SERVICE_WORKERS: ${AUTH_SERVICE_WORKERS}
+            CHANNEL_ACTIONS_SERVICE_WORKERS: ${CHANNEL_ACTIONS_SERVICE_WORKERS}
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB: ${POSTGRES_DB}
-            RSA_PUBLIC_KEY: ${RSA_PUBLIC_KEY}
-            RSA_PRIVATE_KEY: ${RSA_PRIVATE_KEY}
-            REDIS_PASSWORD: ${REDIS_PASSWORD}
 
         healthcheck:
-            test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+            test: [ "CMD", "curl", "-f", "http://localhost:7000/health" ]
             interval: 30s
             timeout: 10s
             retries: 3
             start_interval: 20s
 
         depends_on:
-            redis:
-                condition: service_healthy
             postgres:
                 condition: service_healthy
-            kafka:
+            auth_service:
                 condition: service_healthy
+
 
     minio:
         image: minio/minio
@@ -114,7 +142,7 @@ services:
         volumes:
             - ./redis_data:/data
 
-        command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes"]
+        command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes" ]
         healthcheck:
             test: [ "CMD", "redis-cli", "-u", "redis://:${REDIS_PASSWORD}@localhost:6379", "ping" ]
             interval: 30s
@@ -170,6 +198,8 @@ services:
             auth_service:
                 condition: service_healthy
             file-upload-service:
+                condition: service_healthy
+            channel_actions:
                 condition: service_healthy
 
         healthcheck:
