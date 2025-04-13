@@ -89,6 +89,8 @@ services:
                 condition: service_healthy
             auth_service:
                 condition: service_healthy
+            kafka:
+                condition: service_healthy
 
 
     minio:
