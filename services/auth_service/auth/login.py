@@ -21,7 +21,8 @@ async def authorization_by_login(user_login: UserLogin, session: AsyncSession) -
         user: User = await get_user_by_email(user_login.login, session)
     else:
         user: User = await get_user_by_username(user_login.login, session)
-    if user is None or not verify_password(plain_password=user_login.password, hashed_password=user.password_hash):
+    verify_pass = verify_password(user_login.password, user.password_hash)
+    if user is None or not verify_pass:
         return None
 
     return user
@@ -42,15 +43,31 @@ async def authorization_user(user_login: UserLogin) -> ORJSONResponse:
                     status_code=401
                 )
 
-            access_token = create_access_token(create_access_token_payload(authenticated_user))
-            refresh_token = create_refresh_token(create_refresh_token_payload(authenticated_user))
+            access_token: str = create_access_token(
+                create_access_token_payload(authenticated_user)
+            )
+            refresh_token: str = create_refresh_token(
+                create_refresh_token_payload(authenticated_user)
+            )
 
             response = ORJSONResponse(
                 {"msg": "Успешная авторизация."},
                 status_code=200
+            ) 
+            response.set_cookie(
+                'access_token',
+                access_token,
+                secure=True,
+                httponly=True,
+                samesite='strict',
             )
-            response.set_cookie('access_token', access_token, secure=True, httponly=True, samesite='strict')
-            response.set_cookie('refresh_token', refresh_token, secure=True, httponly=True, samesite='strict')
+            response.set_cookie(
+                'refresh_token',
+                refresh_token,
+                secure=True,
+                httponly=True,
+                samesite='strict',
+            )
             return response
 
         except Exception as e:
