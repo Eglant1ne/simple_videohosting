@@ -88,7 +88,7 @@ async def get_user_by_token(access_token: TokenBody) -> ORJSONResponse:
             return ORJSONResponse({'msg': _INVALID_TOKEN_MESSAGE}, status_code=401)
 
         user_info = {'id': user.id, 'username': user.username, 'email': user.email, 'created_at': user.created_at,
-                     'avatar': user.avatar}
+                     'avatar_path': user.avatar_path}
         return ORJSONResponse(
             {'msg': 'Успешная авторизация',
              'user': user_info},
