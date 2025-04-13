@@ -1,16 +1,28 @@
-import uuid
 import asyncio
 import uvicorn
 
 import healthcheck
 import database
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from config import DEBUG_MODE, WORKER_THREADS
+from kafka_producer import create_producer
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    producer = await create_producer()
+    await producer.start()
+    yield
+    await producer.stop()
+
 
 app = FastAPI(docs_url='/docs' if DEBUG_MODE.debug_mode else None,
-              redoc_url='/redoc' if DEBUG_MODE.debug_mode else None)
+              redoc_url='/redoc' if DEBUG_MODE.debug_mode else None,
+              lifespan=lifespan)
 
 app.include_router(healthcheck.router)
 
