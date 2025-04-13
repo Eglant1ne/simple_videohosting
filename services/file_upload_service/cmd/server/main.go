@@ -36,7 +36,7 @@ func main() {
 	//healthcheck
 	r.Get("/health", handler.HealthCheckHandler)
 
-	r.Post("/upload", handler.uploadHandler(minioSvc, cfg))
+	r.Post("/upload", handler.UploadHandler(minioSvc, &cfg))
 
 	log.Println("Server listening on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
