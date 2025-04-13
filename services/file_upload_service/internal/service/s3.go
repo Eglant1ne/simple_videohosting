@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"log"
@@ -24,7 +23,7 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		Region: cfg.Region,
 	})
 	if err != nil {
-	    log.Fatalf("%v", cfg.Endpoint)
+		log.Fatalf("%v", cfg.Endpoint)
 		log.Fatalf("failed to initialize MinIO client: %v", err)
 	}
 
@@ -49,13 +48,16 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 	}
 }
 
-func (s *MinIOService) UploadStream(ctx context.Context, key string, body io.Reader, size int64) error {
-	_, err := s.Client.PutObject(ctx, s.Config.Bucket, key, body, size, minio.PutObjectOptions{
-		ContentType: "application/octet-stream",
-	})
-	return err
+func (s *MinIOService) UploadPart(ctx context.Context, objectName, uploadID string, partNumber int, reader io.Reader, partSize int64) error {
+	s.Client.PutObjectPart(ctx, s.Config.Bucket, objectName, uploadID, partNumber, reader, partSize, "", "", nil)
 }
 
-func (s *MinIOService) UploadChunk(ctx context.Context, key string, chunk []byte) error {
-	return s.UploadStream(ctx, key, bytes.NewReader(chunk), int64(len(chunk)))
+func (s *MinIOService) CompleteUpload(ctx context.Context, objectName, uploadID string, parts []minio.CompletePart) (*minio.UploadInfo, error) {
+	return s.Client.CompleteMultipartUpload(ctx, s.Config.Bucket, objectName, uploadID, minio.CompleteMultipartUpload{
+		Parts: parts,
+	})
+}
+
+func (s *MinIOService) AbortUpload(ctx context.Context, objectName, uploadID string) error {
+	return s.Client.AbortMultipartUpload(ctx, s.Config.Bucket, objectName, uploadID)
 }
