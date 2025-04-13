@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/file_upload_service/internal/config"
-	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/file_upload_service/internal/service"
+	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
+	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -34,7 +34,7 @@ type UploadResponse struct {
 	FinalObjectKey string `json:"final_object_key,omitempty"`
 }
 
-func uploadHandler(minioClient *service.MinIOService, cfg *config.Config) http.HandlerFunc {
+func UploadHandler(minioClient *service.MinIOService, cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 

@@ -8,13 +8,16 @@ import (
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/handler"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
-	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi"
 )
 
 const (
 	tmpDir       = "../.././tmp"
 	chunksDir    = "../.././tmp/chunks"
 	chunkPattern = "chunk_%03d.mp4"
+
+	chunkDuration = 5
+	maxUploadSize = 20 << 30
 )
 
 func main() {
