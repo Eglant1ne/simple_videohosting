@@ -8,6 +8,10 @@ class DatabaseSettings(BaseSettings):
     password: str = Field(alias='POSTGRES_PASSWORD')
 
 
+class RedisSettings(BaseSettings):
+    password: str = Field(alias='REDIS_PASSWORD')
+
+
 class DebugMode(BaseSettings):
     debug_mode: bool = Field(alias='DEBUG_MODE')
 
@@ -24,4 +28,5 @@ class RSAKeys(BaseSettings):
 DATABASE_SETTINGS: DatabaseSettings = DatabaseSettings()
 DEBUG_MODE: DebugMode = DebugMode()
 RSA_KEYS: RSAKeys = RSAKeys()
-WORKERTHREADS: WorkerThreads = WorkerThreads()
+WORKER_THREADS: WorkerThreads = WorkerThreads()
+REDIS_SETTINGS: RedisSettings = RedisSettings()
