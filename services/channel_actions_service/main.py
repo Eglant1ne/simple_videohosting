@@ -1,6 +1,9 @@
+import uuid
 import asyncio
 import uvicorn
+
 import healthcheck
+import database
 
 from fastapi import FastAPI
 
@@ -13,8 +16,7 @@ app.include_router(healthcheck.router)
 
 
 async def main():
-    pass
-    #await database.create_tables.create_tables()
+    await database.create_tables.create_tables()
 
 
 if __name__ == '__main__':
