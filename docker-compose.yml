@@ -130,7 +130,7 @@ services:
 
         environment:
             CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
-            KAFKA_NODE_ID: 1
+            KAFKA_BROKER_ID: 1
             KAFKA_PROCESS_ROLES: broker,controller
             KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
             KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092

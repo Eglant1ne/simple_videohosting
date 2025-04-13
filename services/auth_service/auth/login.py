@@ -21,11 +21,11 @@ async def authorization_by_login(user_login: UserLogin, session: AsyncSession) -
         user: User = await get_user_by_email(user_login.login, session)
     else:
         user: User = await get_user_by_username(user_login.login, session)
-    verify_pass = verify_password(user_login.password, user.password_hash)
-    if user is None or not verify_pass:
-        return None
 
-    return user
+    if user is not None and verify_password(user_login.password, user.password_hash):
+        return user
+
+    return None
 
 
 @router.post("/login/")
@@ -37,7 +37,7 @@ async def authorization_user(user_login: UserLogin) -> ORJSONResponse:
                 session
             )
 
-            if not authenticated_user:
+            if authenticated_user is None:
                 return ORJSONResponse(
                     {"msg": "Неверная почта/имя пользователя или пароль."},
                     status_code=401
@@ -53,7 +53,7 @@ async def authorization_user(user_login: UserLogin) -> ORJSONResponse:
             response = ORJSONResponse(
                 {"msg": "Успешная авторизация."},
                 status_code=200
-            ) 
+            )
             response.set_cookie(
                 'access_token',
                 access_token,

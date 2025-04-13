@@ -50,5 +50,3 @@ def create_refresh_token_payload(user: User) -> dict:
     payload["version"] = user.token_version
 
     return payload
-
-
