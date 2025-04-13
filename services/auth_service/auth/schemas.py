@@ -14,3 +14,8 @@ class UserCreate(BaseModel):
 
 class TokenBody(BaseModel):
     token: str
+
+
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str

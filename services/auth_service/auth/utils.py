@@ -1,5 +1,3 @@
-import datetime
-
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,7 +41,7 @@ def generate_blacklist_token_id(token_id: str) -> None:
     return f'blacklisted_token:{token_id}'
 
 
-async def add_token_to_blacklist(payload: dict) -> None:
+async def add_token_payload_to_blacklist(payload: dict) -> None:
     if payload is not None:
         await redis_client.set(generate_blacklist_token_id(payload.get('jti')), value=1, exat=payload.get('exp', 0))
 

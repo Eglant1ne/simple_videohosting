@@ -27,6 +27,7 @@ def create_refresh_token(data: dict, expires_delta: datetime.timedelta = None) -
         expire = now + expires_delta
     else:
         expire = now + datetime.timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire, "nbf": now, "iat": now})
+    to_encode.update(
+        {"exp": expire, "nbf": now, "iat": now})
     token: str = jwt.encode(to_encode, RSA_KEYS.private_key, algorithm=ALGORITHM)
     return token
