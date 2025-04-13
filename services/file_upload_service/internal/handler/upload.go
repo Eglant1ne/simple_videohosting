@@ -70,7 +70,6 @@ func UploadHandler(minioClient *service.MinIOService, cfg *config.Config) http.H
 		}
 		log.Printf("Файл %s успешно сохранён", tmpFilePath)
 
-		// Разбиваем видео на чанки
 		if err = splitVideo(tmpFilePath, chunksDir); err != nil {
 			http.Error(w, "Ошибка разбиения видео: "+err.Error(), http.StatusInternalServerError)
 			return
