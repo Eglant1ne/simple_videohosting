@@ -10,6 +10,8 @@ import (
 
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
+	response "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/pkg/http"
+	filewrapper "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/pkg/io"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -19,27 +21,27 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.Hand
 	return func(w http.ResponseWriter, r *http.Request) {
 		file, header, err := r.FormFile("file")
 		if err != nil {
-			JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
+			response.JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
 			return
 		}
 		defer file.Close()
 
 		buf, err := io.ReadAll(file)
 		if err != nil {
-			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Невозможно прочитать загруженные файлы: %v", err))
+			response.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Невозможно прочитать загруженные файлы: %v", err))
 			return
 		}
 		size := int64(len(buf))
 
-		customFile := &FileWrapper{Reader: bytes.NewReader(buf)}
+		customFile := &filewrapper.FileWrapper{Reader: bytes.NewReader(buf)}
 
 		err = uploadMultipartFile(minioSvc, header.Filename, customFile, size)
 		if err != nil {
-			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
+			response.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
 			return
 		}
 
-		JSONResponse(w, http.StatusOK, fmt.Sprintf("Файл успешно загружен: %v", err))
+		response.JSONResponse(w, http.StatusOK, fmt.Sprintf("Файл успешно загружен: %v", err))
 	}
 }
 
