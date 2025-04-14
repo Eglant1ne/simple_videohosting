@@ -126,34 +126,58 @@ async def refresh_access_token(refresh_token: str = Cookie(None)) -> ORJSONRespo
     try:
         old_token_payload: dict = decode_token_payload(refresh_token)
         if old_token_payload is None:
-            raise ValueError('Неправильный refresh токен')
+            raise ValueError('Не удалось валидировать refresh_token')
         if not token_payload_is_refresh(old_token_payload):
             raise ValueError('Это не refresh token')
-        if await redis_client.exists(generate_blacklist_token_id(old_token_payload.get('jti'))):
-            raise ValueError('Этот токен уже был использован')
 
-    except Exception:
-        return ORJSONResponse(
-            {'msg': f'Не удалось авторизоваться по предоставленным данным'},
-            status_code=401)
+        async with async_session() as session:
+            user: User = await get_user_by_token_payload(old_token_payload, session)
 
-    async with async_session() as session:
-        user: User = await get_user_by_token_payload(old_token_payload, session)
+        if user is None:
+            raise ValueError("Пользователь не найден")
 
-    if user is None:
-        return ORJSONResponse({'msg': _INVALID_TOKEN_MESSAGE}, status_code=401)
+        new_access_token = create_access_token(create_access_token_payload(user))
+        new_refresh_token = create_refresh_token(create_refresh_token_payload(user))
 
-    new_access_token = create_access_token(create_access_token_payload(user))
-    new_refresh_token = create_refresh_token(create_refresh_token_payload(user))
+        await add_token_payload_to_blacklist(old_token_payload)
 
-    await add_token_payload_to_blacklist(old_token_payload)
+        response = ORJSONResponse(
+            {'msg': 'Сгенерированы новые токены'},
+            status_code=200
+        )
 
-    response = ORJSONResponse(
-        {'msg': 'Сгенерированы новые токены'},
-        status_code=200
-    )
+        response.set_cookie('access_token', new_access_token, secure=True, httponly=True, samesite='strict')
+        response.set_cookie('refresh_token', new_refresh_token, secure=True, httponly=True, samesite='strict')
 
-    response.set_cookie('access_token', new_access_token, secure=True, httponly=True, samesite='strict')
-    response.set_cookie('refresh_token', new_refresh_token, secure=True, httponly=True, samesite='strict')
+        return response
 
-    return response
+    except Exception as e:
+        response = ORJSONResponse({'msg': f'{_INVALID_TOKEN_MESSAGE}: {e}'}, status_code=401)
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+
+        return response
+
+
+@router.get('/me/')
+async def user_get_self(access_token: str = Cookie(None)):
+    try:
+        if access_token is None:
+            raise ValueError('Вы не авторизованы')
+        payload: dict = decode_token_payload(access_token)
+        if not token_payload_is_access(payload):
+            raise ValueError('Это не refresh token')
+        async with async_session() as session:
+            user: User = await get_user_by_token_payload(payload, session)
+
+        if user is None:
+            raise ValueError("Пользователь не найден")
+
+        user_info = {'id': user.id, 'username': user.username, 'email': user.email, 'created_at': user.created_at,
+                     'avatar': user.avatar_path}
+        return ORJSONResponse({'msg': 'Ваши данные',
+                               'user': user_info},
+                              status_code=200)
+
+    except Exception as e:
+        return ORJSONResponse({'msg': f'{_INVALID_TOKEN_MESSAGE}: {e}'}, status_code=401)
