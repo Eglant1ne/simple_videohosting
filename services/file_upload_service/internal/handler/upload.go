@@ -41,7 +41,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.Hand
 			return
 		}
 
-		response.JSONResponse(w, http.StatusOK, fmt.Sprintf("Файл успешно загружен: %v", err))
+		response.JSONResponse(w, http.StatusOK, "Файл успешно загружен")
 	}
 }
 
