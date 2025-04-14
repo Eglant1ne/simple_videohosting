@@ -15,44 +15,31 @@ import (
 
 const MinChunkSize = 5 * 1024 * 1024
 
-type CustomMultipartFile struct {
-	*bytes.Reader
-}
-
-func (f *CustomMultipartFile) ReadAt(p []byte, off int64) (n int, err error) {
-	return f.Reader.ReadAt(p, off)
-}
-
-func (f *CustomMultipartFile) Close() error {
-	return nil
-}
-
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		file, header, err := r.FormFile("file")
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to read file: %v", err), http.StatusBadRequest)
+			JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
 			return
 		}
 		defer file.Close()
 
 		buf, err := io.ReadAll(file)
 		if err != nil {
-			http.Error(w, "cannot read uploaded file", http.StatusInternalServerError)
+			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Невозможно прочитать загруженные файлы: %v", err))
 			return
 		}
 		size := int64(len(buf))
 
-		customFile := &CustomMultipartFile{Reader: bytes.NewReader(buf)}
+		customFile := &FileWrapper{Reader: bytes.NewReader(buf)}
 
 		err = uploadMultipartFile(minioSvc, header.Filename, customFile, size)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("upload error: %v", err), http.StatusInternalServerError)
+			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("Upload successful"))
+		JSONResponse(w, http.StatusOK, fmt.Sprintf("Файл успешно загружен: %v", err))
 	}
 }
 
@@ -68,22 +55,19 @@ func uploadMultipartFile(minioSvc *service.MinIOService, fileName string, file m
 	}
 
 	var parts []minio.CompletePart
-	for i := 0; i < chunkCount; i++ {
+	for i := range chunkCount {
 		start := int64(i) * MinChunkSize
-		end := start + MinChunkSize
-		if end > fileSize {
-			end = fileSize
-		}
+		end := min(start+MinChunkSize, fileSize)
 
 		chunk := make([]byte, end-start)
 		_, err := file.ReadAt(chunk, start)
 		if err != nil && err != io.EOF {
-			return fmt.Errorf("error reading chunk: %v", err)
+			return fmt.Errorf("ошибка чтения чанка: %v", err)
 		}
 
 		part, err := minioSvc.UploadPart(context.Background(), fileName, uploadID, i+1, chunk)
 		if err != nil {
-			return fmt.Errorf("error uploading chunk %d: %v", i+1, err)
+			return fmt.Errorf("ошибка загрузки чанка %d: %v", i+1, err)
 		}
 
 		parts = append(parts, minio.CompletePart{
