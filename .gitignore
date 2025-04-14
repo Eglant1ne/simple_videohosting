@@ -18,6 +18,8 @@ redis_data/
 *.dll
 *.so
 *.dylib
+*.mod
+*.sum
 
 # Test binary, built with `go test -c`
 *.test
