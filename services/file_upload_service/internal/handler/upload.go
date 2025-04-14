@@ -1,17 +1,16 @@
 package handler
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
 	response "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/pkg/http"
-	filewrapper "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/pkg/io"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -26,16 +25,10 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.Hand
 		}
 		defer file.Close()
 
-		buf, err := io.ReadAll(file)
-		if err != nil {
-			response.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Невозможно прочитать загруженные файлы: %v", err))
-			return
-		}
-		size := int64(len(buf))
+		fileSizeStr := r.Header.Get("Content-Length")
+		fileSize, _ := strconv.ParseInt(fileSizeStr, 10, 64)
 
-		customFile := &filewrapper.FileWrapper{Reader: bytes.NewReader(buf)}
-
-		err = uploadMultipartFile(minioSvc, header.Filename, customFile, size)
+		err = uploadMultipartFile(minioSvc, header.Filename, file, fileSize)
 		if err != nil {
 			response.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
 			return
@@ -46,37 +39,44 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.Hand
 }
 
 func uploadMultipartFile(minioSvc *service.MinIOService, fileName string, file multipart.File, fileSize int64) error {
-	chunkCount := int(fileSize / MinChunkSize)
-	if fileSize%MinChunkSize != 0 {
-		chunkCount++
-	}
-
-	uploadID, err := minioSvc.StartMultipartUpload(context.Background(), fileName)
+	ctx := context.Background()
+	uploadID, err := minioSvc.StartMultipartUpload(ctx, fileName)
 	if err != nil {
 		return err
 	}
 
-	var parts []minio.CompletePart
-	for i := range chunkCount {
-		start := int64(i) * MinChunkSize
-		end := min(start+MinChunkSize, fileSize)
+	var (
+		parts  []minio.CompletePart
+		partNo = 1
+		buf    = make([]byte, MinChunkSize)
+	)
 
-		chunk := make([]byte, end-start)
-		_, err := file.ReadAt(chunk, start)
-		if err != nil && err != io.EOF {
-			return fmt.Errorf("ошибка чтения чанка: %v", err)
+	for {
+		n, err := io.ReadFull(file, buf)
+		if err != nil {
+			if err == io.EOF || err == io.ErrUnexpectedEOF {
+				if n == 0 {
+					break
+				}
+			} else {
+				return fmt.Errorf("ошибка чтения файла: %v", err)
+			}
 		}
 
-		part, err := minioSvc.UploadPart(context.Background(), fileName, uploadID, i+1, chunk)
+		chunk := buf[:n]
+
+		part, err := minioSvc.UploadPart(ctx, fileName, uploadID, partNo, chunk)
 		if err != nil {
-			return fmt.Errorf("ошибка загрузки чанка %d: %v", i+1, err)
+			return fmt.Errorf("ошибка загрузки чанка %d: %v", partNo, err)
 		}
 
 		parts = append(parts, minio.CompletePart{
-			PartNumber: i + 1,
+			PartNumber: partNo,
 			ETag:       part.ETag,
 		})
+
+		partNo++
 	}
 
-	return minioSvc.CompleteMultipartUpload(context.Background(), fileName, uploadID, parts)
+	return minioSvc.CompleteMultipartUpload(ctx, fileName, uploadID, parts)
 }
