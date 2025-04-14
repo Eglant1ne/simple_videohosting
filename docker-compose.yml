@@ -14,6 +14,7 @@ services:
             MINIO_SERVER_URL: ${MINIO_SERVER_URL}
             MINIO_ROOT_USER: ${MINIO_ROOT_USER}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+            MINIO_STALE_UPLOADS_EXPIRY: ${MINIO_STALE_UPLOADS_EXPIRY}
 
         healthcheck:
             test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
