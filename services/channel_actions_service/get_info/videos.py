@@ -22,4 +22,4 @@ async def get_author_videos(author_id: int, offset: conint(ge=0), count: conint(
         result = result.scalars().all()
         print(result)
         return ORJSONResponse({'msg': 'Видео успешно выбраны',
-                               'videos': result)
+                               'videos': result})
