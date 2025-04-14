@@ -2,14 +2,16 @@ import asyncio
 import uvicorn
 
 import healthcheck
+import get_info
 import database
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from config import DEBUG_MODE, WORKER_THREADS
 from kafka_producer import create_producer
+
+from config import DEBUG_MODE, WORKER_THREADS
 
 
 @asynccontextmanager
@@ -25,6 +27,7 @@ app = FastAPI(docs_url='/docs' if DEBUG_MODE.debug_mode else None,
               lifespan=lifespan)
 
 app.include_router(healthcheck.router)
+app.include_router(get_info.router.router)
 
 
 async def main():

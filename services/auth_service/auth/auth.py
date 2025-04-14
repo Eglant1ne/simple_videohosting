@@ -167,6 +167,7 @@ async def user_get_self(access_token: str = Cookie(None)):
         payload: dict = decode_token_payload(access_token)
         if not token_payload_is_access(payload):
             raise ValueError('Это не refresh token')
+
         async with async_session() as session:
             user: User = await get_user_by_token_payload(payload, session)
 
