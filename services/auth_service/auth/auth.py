@@ -174,7 +174,7 @@ async def user_get_self(access_token: str = Cookie(None)):
             raise ValueError("Пользователь не найден")
 
         user_info = {'id': user.id, 'username': user.username, 'email': user.email, 'created_at': user.created_at,
-                     'avatar': user.avatar}
+                     'avatar': user.avatar_path}
         return ORJSONResponse({'msg': 'Ваши данные',
                                'user': user_info},
                               status_code=200)
