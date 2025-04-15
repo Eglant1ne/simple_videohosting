@@ -11,8 +11,9 @@ import (
 )
 
 type MinIOService struct {
-	Client *minio.Client
-	Config appcfg.Config
+	Client                  *minio.Client
+	Config                  appcfg.Config
+	UnprocessedVideosFolder string
 }
 
 func NewMinIOService(cfg appcfg.Config) *MinIOService {
@@ -50,7 +51,8 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 	log.Printf("Folder %s created in bucket %s\n", folderName, cfg.Bucket)
 
 	return &MinIOService{
-		Client: client,
-		Config: cfg,
+		Client:                  client,
+		Config:                  cfg,
+		UnprocessedVideosFolder: folderName,
 	}
 }

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	api "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/api"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -54,9 +56,14 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.Hand
 		}
 
 		ctx := context.Background()
+		videoid, err := uuid.NewRandom()
+		if err != nil {
+			api.JSONResponse(w, http.StatusBadGateway, (fmt.Sprintf("ошибка генерации uuid %v", err)))
+		}
+		fileName := string(hex.EncodeToString(videoid[:])) + part.FileName()[len(part.FileName())-4:]
 
-		minioSvc.Client.PutObject(ctx, cfg.Bucket, part.FileName(), part, -1, minio.PutObjectOptions{PartSize: defaultPartSize})
-		api.JSONResponse(w, http.StatusOK, "Файл успешно загружен")
+		minioSvc.Client.PutObject(ctx, cfg.Bucket, minioSvc.UnprocessedVideosFolder+"/"+fileName, part, -1, minio.PutObjectOptions{PartSize: defaultPartSize})
+		api.JSONResponse(w, http.StatusOK, "Файл успешно создан")
 
 	}
 
