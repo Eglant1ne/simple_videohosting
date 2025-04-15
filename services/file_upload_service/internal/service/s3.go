@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"log"
 	"time"
@@ -46,30 +45,4 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		Client: client,
 		Config: cfg,
 	}
-}
-
-func (svc *MinIOService) StartMultipartUpload(ctx context.Context, objectName string) (string, error) {
-	client := minio.Core{Client: svc.Client}
-	uploadInfo, err := client.NewMultipartUpload(ctx, svc.Config.Bucket, objectName, minio.PutObjectOptions{})
-	if err != nil {
-		return "", err
-	}
-	return uploadInfo, nil
-}
-
-func (svc *MinIOService) UploadPart(ctx context.Context, objectName, uploadID string, partNumber int, data []byte) (minio.ObjectPart, error) {
-	reader := bytes.NewReader(data)
-	client := minio.Core{Client: svc.Client}
-	return client.PutObjectPart(ctx, svc.Config.Bucket, objectName, uploadID, partNumber, reader, int64(len(data)), minio.PutObjectPartOptions{})
-}
-
-func (svc *MinIOService) CompleteMultipartUpload(ctx context.Context, objectName, uploadID string, parts []minio.CompletePart) error {
-	client := minio.Core{Client: svc.Client}
-	_, err := client.CompleteMultipartUpload(ctx, svc.Config.Bucket, objectName, uploadID, parts, minio.PutObjectOptions{})
-	return err
-}
-
-func (svc *MinIOService) AbortMultipartUpload(ctx context.Context, objectName, uploadID string) error {
-	client := minio.Core{Client: svc.Client}
-	return client.AbortMultipartUpload(ctx, svc.Config.Bucket, objectName, uploadID)
 }
