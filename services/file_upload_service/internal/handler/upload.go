@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"strconv"
 
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
@@ -14,69 +12,43 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-const MinChunkSize = 5 * 1024 * 1024
+const defaultPartSize = 32 << 20
 
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		file, header, err := r.FormFile("file")
+		r.Body = http.MaxBytesReader(w, r.Body, 10<<30)
+		reader, err := r.MultipartReader()
 		if err != nil {
 			response.JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
 			return
 		}
-		defer file.Close()
 
-		fileSizeStr := r.Header.Get("Content-Length")
-		fileSize, _ := strconv.ParseInt(fileSizeStr, 10, 64)
-
-		err = uploadMultipartFile(minioSvc, header.Filename, file, fileSize)
+		part, err := reader.NextPart()
 		if err != nil {
-			response.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
-			return
+			response.JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения части: %v", err))
 		}
-
-		response.JSONResponse(w, http.StatusOK, "Файл успешно загружен")
-	}
-}
-
-func uploadMultipartFile(minioSvc *service.MinIOService, fileName string, file multipart.File, fileSize int64) error {
-	ctx := context.Background()
-	uploadID, err := minioSvc.StartMultipartUpload(ctx, fileName)
-	if err != nil {
-		return err
-	}
-
-	var (
-		parts  []minio.CompletePart
-		partNo = 1
-		buf    = make([]byte, MinChunkSize)
-	)
-
-	for {
-		n, err := io.ReadFull(file, buf)
-		if err != nil {
-			if err == io.EOF || err == io.ErrUnexpectedEOF {
-				if n == 0 {
-					break
-				}
-			} else {
-				return fmt.Errorf("ошибка чтения файла: %v", err)
+		for {
+			if err == io.EOF {
+				response.JSONResponse(w, http.StatusBadRequest, "Нет файла")
+				return
 			}
+			if err != nil {
+				response.JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения части: %v", err))
+				return
+			}
+
+			if part.FormName() == "file" {
+				defer part.Close()
+				break
+			}
+			part, err = reader.NextPart()
 		}
 
-		chunk := buf[:n]
+		ctx := context.Background()
 
-		part, err := minioSvc.UploadPart(ctx, fileName, uploadID, partNo, chunk)
-		if err != nil {
-			return fmt.Errorf("ошибка загрузки чанка %d: %v", partNo, err)
-		}
+		minioSvc.Client.PutObject(ctx, cfg.Bucket, part.FileName(), part, -1, minio.PutObjectOptions{PartSize: defaultPartSize})
+		response.JSONResponse(w, http.StatusOK, "Файл успешно загружен")
 
-		parts = append(parts, minio.CompletePart{
-			PartNumber: partNo,
-			ETag:       part.ETag,
-		})
-
-		partNo++
 	}
 
-	return minioSvc.CompleteMultipartUpload(ctx, fileName, uploadID, parts)
 }
