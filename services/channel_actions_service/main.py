@@ -10,15 +10,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from kafka_producer import create_producer
+from video_create_handlers.consumers import create_unprocessed_video_consumer
 
 from config import DEBUG_MODE, WORKER_THREADS
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    producer = await create_producer()
+    producer = create_producer()
     await producer.start()
+
+    asyncio.create_task(create_unprocessed_video_consumer())
     yield
+
     await producer.stop()
 
 
