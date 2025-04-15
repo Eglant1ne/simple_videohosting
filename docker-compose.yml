@@ -107,7 +107,7 @@ services:
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
 
         volumes:
-            - ./minio-data:/data
+            - ./minio_data:/data
 
         command: [ "server", "--console-address", ":9001", "/data" ]
 
@@ -166,7 +166,6 @@ services:
 
         environment:
             CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
-            KAFKA_KRAFT_MODE: true
             KAFKA_BROKER_ID: 1
             KAFKA_PROCESS_ROLES: broker,controller
             KAFKA_LISTENERS: PLAINTEXT://localhost:9090,CONTROLLER://localhost:9093,PLAINTEXT_DOCKER://kafka:9092
@@ -182,7 +181,7 @@ services:
             KAFKA_LOG_DIRS: /var/lib/kafka/data
 
         volumes:
-            - ./kafka-data:/var/lib/kafka/data
+            - ./kafka_data:/var/lib/kafka/data
 
         healthcheck:
             test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9090" ]
