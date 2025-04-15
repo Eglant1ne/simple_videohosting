@@ -1,5 +1,5 @@
 services:
-    file-upload-service:
+    file_upload_service:
         build:
             context: ./services/file_upload_service
             dockerfile: Dockerfile
