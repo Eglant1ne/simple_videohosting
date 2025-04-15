@@ -41,6 +41,14 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		}
 	}
 
+	folderName := "unprocessed_videos"
+	folderPath := folderName + "/"
+
+	client.PutObject(ctx, cfg.Bucket, folderPath, nil, 0,
+		minio.PutObjectOptions{ContentType: "application/x-directory"})
+
+	log.Printf("Folder %s created in bucket %s\n", folderName, cfg.Bucket)
+
 	return &MinIOService{
 		Client: client,
 		Config: cfg,
