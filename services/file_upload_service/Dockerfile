@@ -15,8 +15,8 @@ ENV PATH=$PATH:/usr/lib/go/bin:$GOPATH/bin
 
 COPY . .
 
-RUN rm go.mod
-RUN rm go.sum
+RUN rm -f go.mod
+RUN rm -f go.sum
 RUN go mod init github.com/Eglant1ne/simple_videohosting/services/file_upload_service
 RUN go mod tidy
 RUN go build ./cmd/server/
