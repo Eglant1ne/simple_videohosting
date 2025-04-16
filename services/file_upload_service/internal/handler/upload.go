@@ -117,7 +117,6 @@ func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io
 }
 
 func sendToKafka(producer *service.KafkaProducer, topic string, authResp *service.AuthResponse, folderPath, fileName string) error {
-	log.Printf("DEBUG: Sending to Kafka. UserID: %v, VideoPath: %s/%s", authResp.User.ID, folderPath, fileName)
 	msg := map[string]any{
 		"user_id":    authResp.User.ID,
 		"video_path": folderPath + "/" + fileName,
@@ -125,8 +124,8 @@ func sendToKafka(producer *service.KafkaProducer, topic string, authResp *servic
 
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		return fmt.Errorf("ошибка формирования сообщения: %v", err)
+		log.Printf("Message generation error: %v", err)
+		return err
 	}
-	log.Printf("DEBUG: Kafka message JSON: %s", string(msgBytes))
 	return producer.SendMessage(topic, fileName, msgBytes)
 }
