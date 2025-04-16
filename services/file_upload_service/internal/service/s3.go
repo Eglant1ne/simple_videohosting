@@ -40,7 +40,7 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		}
 	}
 
-	folderName := "video_files"
+	folderName := "unprocessed_videos"
 	folderPath := folderName + "/"
 
 	client.PutObject(ctx, cfg.Bucket, folderPath, nil, 0,
