@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
@@ -19,7 +20,6 @@ import (
 
 const (
 	defaultPartSize = 32 << 20
-	maxFileSize     = 20 << 30
 )
 
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer *service.KafkaProducer, kafkaTopic string) http.HandlerFunc {
@@ -54,11 +54,13 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 
 		videoID, fileName, err := uploadToMinIO(minioSvc, cfg, fullReader, filePart)
 		if err != nil {
+			log.Printf("Error upload: %v", err)
 			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
 			return
 		}
 
 		if err := sendToKafka(producer, kafkaTopic, &authResp, minioSvc.UnprocessedVideosFolder, fileName, videoID); err != nil {
+			log.Printf("Error send message: %v", err)
 			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
 			return
 		}
@@ -71,7 +73,6 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 }
 
 func getFilePart(w http.ResponseWriter, r *http.Request) (*multipart.Part, error) {
-	r.Body = http.MaxBytesReader(w, r.Body, maxFileSize)
 	reader, err := r.MultipartReader()
 	if err != nil {
 		RespondError(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
@@ -96,7 +97,9 @@ func getFilePart(w http.ResponseWriter, r *http.Request) (*multipart.Part, error
 }
 
 func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io.Reader, part *multipart.Part) (uuid.UUID, string, error) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	videoID, err := uuid.NewRandom()
 	if err != nil {
 		return uuid.Nil, "", fmt.Errorf("ошибка генерации uuid: %v", err)
