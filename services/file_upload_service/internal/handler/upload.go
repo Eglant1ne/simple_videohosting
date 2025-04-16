@@ -23,7 +23,7 @@ const (
 
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer *service.KafkaProducer, kafkaTopic string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		accessToken, err := getCookieHandler(r)
+		accessToken, err := getCookieHandler(r, "access_token")
 		if err != nil {
 			RespondError(w, http.StatusUnauthorized, "Не авторизованный пользователь!")
 			return
