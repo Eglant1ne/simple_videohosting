@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading kafka")
 	}
+	log.Println("Kafka is loaded ")
 	kafkaTopic := "video-uploads"
 	defer producer.Close()
 
@@ -30,6 +31,7 @@ func main() {
 	r.Post("/upload/video", handler.UploadHandler(minioSvc, &cfg, producer, kafkaTopic))
 
 	log.Println("Server listening on :8080")
+
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
