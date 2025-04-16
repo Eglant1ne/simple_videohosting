@@ -104,7 +104,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			return
 		}
 
-		log.Printf("Отправлено сообщение в Kafka: topic=%s key=%s value=%s\n", kafkaTopic, videoID.String(), string(msgBytes))
+		log.Printf("Message sent to Kafka: topic=%s key=%s value=%s\n", kafkaTopic, videoID.String(), string(msgBytes))
 		JSONResponse(w, http.StatusOK, "Файл успешно создан")
 
 	}
