@@ -3,35 +3,23 @@ import uvicorn
 
 import healthcheck
 import get_info
-import database
+import kafka
 
-from contextlib import asynccontextmanager
+import database
 
 from fastapi import FastAPI
 
-from kafka_producer import create_producer
-from video_create_handlers.consumers import create_unprocessed_video_consumer
 
 from config import DEBUG_MODE, WORKER_THREADS
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    producer = create_producer()
-    await producer.start()
-
-    asyncio.create_task(create_unprocessed_video_consumer())
-    yield
-
-    await producer.stop()
-
 
 app = FastAPI(docs_url='/docs' if DEBUG_MODE.debug_mode else None,
-              redoc_url='/redoc' if DEBUG_MODE.debug_mode else None,
-              lifespan=lifespan)
+              redoc_url='/redoc' if DEBUG_MODE.debug_mode else None)
 
 app.include_router(healthcheck.router)
 app.include_router(get_info.router.router)
+app.include_router(kafka.router.router)
 
 
 async def main():

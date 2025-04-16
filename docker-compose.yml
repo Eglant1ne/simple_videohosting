@@ -166,6 +166,7 @@ services:
 
         environment:
             CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
+            KAFKA_KRAFT_MODE: true
             KAFKA_BROKER_ID: 1
             KAFKA_PROCESS_ROLES: broker,controller
             KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
@@ -182,6 +183,7 @@ services:
 
         volumes:
             - ./kafka_data:/var/lib/kafka/data
+        user: "root"
 
         healthcheck:
             test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--list", "--bootstrap-server", "kafka:9092" ]
