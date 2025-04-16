@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
 
@@ -23,90 +24,106 @@ const (
 
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer *service.KafkaProducer, kafkaTopic string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		access_token, err := getCookieHandler(w, r)
+		accessToken, err := getCookieHandler(w, r)
 		if err != nil {
-			JSONResponse(w, http.StatusUnauthorized, "Не авторизованный пользователь!")
+			RespondError(w, http.StatusUnauthorized, "Не авторизованный пользователь!")
 			return
 		}
-		authResp, statusCode := service.IsAuthenticated(access_token)
+
+		authResp, statusCode := service.IsAuthenticated(accessToken)
 		if statusCode != http.StatusOK {
-			JSONResponse(w, statusCode, authResp.Error)
+			RespondError(w, statusCode, authResp.Error)
 			return
 		}
 
-		r.Body = http.MaxBytesReader(w, r.Body, maxFileSize)
-		reader, err := r.MultipartReader()
+		filePart, err := getFilePart(w, r)
 		if err != nil {
-			JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
 			return
 		}
+		defer filePart.Close()
 
-		part, err := reader.NextPart()
-		for {
-			if err == io.EOF {
-				JSONResponse(w, http.StatusBadRequest, "Нет файла")
-				return
-			}
-			if err != nil {
-				JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения части: %v", err))
-				return
-			}
-
-			if part.FormName() == "file" {
-				defer part.Close()
-				break
-			}
-			part, err = reader.NextPart()
-		}
-
-		fullReader, isVideo, err := service.IsVideoFile(part, part.FileName())
+		fullReader, isVideo, err := service.IsVideoFile(filePart, filePart.FileName())
 		if err != nil {
-			JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка проверки файла: %v", err))
+			RespondError(w, http.StatusBadRequest, fmt.Sprintf("Ошибка проверки файла: %v", err))
 			return
 		}
 		if !isVideo {
-			JSONResponse(w, http.StatusBadRequest, "Файл не является видео")
+			RespondError(w, http.StatusBadRequest, "Файл не является видео")
 			return
 		}
 
-		ctx := context.Background()
-		videoID, err := uuid.NewRandom()
+		videoID, fileName, err := uploadToMinIO(minioSvc, cfg, fullReader, filePart)
 		if err != nil {
-			JSONResponse(w, http.StatusBadGateway, (fmt.Sprintf("ошибка генерации uuid %v", err)))
-			return
-		}
-		ext := filepath.Ext(part.FileName())
-		fileName := hex.EncodeToString(videoID[:]) + ext
-
-		fullPath := minioSvc.UnprocessedVideosFolder + "/" + fileName
-
-		_, err = minioSvc.Client.PutObject(ctx, cfg.Bucket, fullPath, fullReader, -1, minio.PutObjectOptions{
-			ContentType: "application/octet-stream",
-			PartSize:    defaultPartSize,
-		})
-		if err != nil {
-			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
-			return
-		}
-		msg := map[string]interface{}{
-			"user_id":    authResp.User.ID,
-			"video_path": fullPath,
-		}
-
-		msgBytes, err := json.Marshal(msg)
-		if err != nil {
-			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка формирования сообщения: %v", err))
+			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка загрузки: %v", err))
 			return
 		}
 
-		if err := producer.SendMessage(kafkaTopic, videoID.String(), msgBytes); err != nil {
-			JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
+		if err := sendToKafka(producer, kafkaTopic, &authResp, minioSvc.UnprocessedVideosFolder, fileName, videoID); err != nil {
+			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
 			return
 		}
 
-		log.Printf("Message sent to Kafka: topic=%s key=%s value=%s\n", kafkaTopic, videoID.String(), string(msgBytes))
+		log.Printf("Message sent to Kafka: topic=%s key=%s value=%s\n", kafkaTopic, videoID.String(),
+			fmt.Sprintf(`{"user_id": "%s", "video_path": "%s/%s"}`, authResp.User.ID, minioSvc.UnprocessedVideosFolder, fileName))
+
 		JSONResponse(w, http.StatusOK, "Файл успешно создан")
+	}
+}
 
+func getFilePart(w http.ResponseWriter, r *http.Request) (*multipart.Part, error) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxFileSize)
+	reader, err := r.MultipartReader()
+	if err != nil {
+		RespondError(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
+		return nil, err
 	}
 
+	for {
+		part, err := reader.NextPart()
+		if err == io.EOF {
+			RespondError(w, http.StatusBadRequest, "Нет файла")
+			return nil, err
+		}
+		if err != nil {
+			RespondError(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения части: %v", err))
+			return nil, err
+		}
+
+		if part.FormName() == "file" {
+			return part, nil
+		}
+	}
+}
+
+func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io.Reader, part *multipart.Part) (uuid.UUID, string, error) {
+	ctx := context.Background()
+	videoID, err := uuid.NewRandom()
+	if err != nil {
+		return uuid.Nil, "", fmt.Errorf("ошибка генерации uuid: %v", err)
+	}
+
+	ext := filepath.Ext(part.FileName())
+	fileName := hex.EncodeToString(videoID[:]) + ext
+	fullPath := minioSvc.UnprocessedVideosFolder + "/" + fileName
+
+	_, err = minioSvc.Client.PutObject(ctx, cfg.Bucket, fullPath, reader, -1, minio.PutObjectOptions{
+		ContentType: "application/octet-stream",
+		PartSize:    defaultPartSize,
+	})
+
+	return videoID, fileName, err
+}
+
+func sendToKafka(producer *service.KafkaProducer, topic string, authResp *service.AuthResponse, folderPath, fileName string, videoID uuid.UUID) error {
+	msg := map[string]any{
+		"user_id":    authResp.User.ID,
+		"video_path": folderPath + "/" + fileName,
+	}
+
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("ошибка формирования сообщения: %v", err)
+	}
+
+	return producer.SendMessage(topic, videoID.String(), msgBytes)
 }

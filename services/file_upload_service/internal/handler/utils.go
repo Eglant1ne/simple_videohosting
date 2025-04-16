@@ -23,3 +23,7 @@ func JSONResponse(w http.ResponseWriter, statusCode int, message string) {
 		http.Error(w, "Failed to encode JSON response", http.StatusInternalServerError)
 	}
 }
+
+func RespondError(w http.ResponseWriter, code int, message string) {
+	JSONResponse(w, code, message)
+}
