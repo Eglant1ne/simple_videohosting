@@ -31,7 +31,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 
 		authResp, statusCode := service.IsAuthenticated(accessToken)
 		if statusCode != http.StatusOK {
-			RespondError(w, statusCode, authResp.Error)
+			RespondError(w, statusCode, authResp.Msg)
 			return
 		}
 

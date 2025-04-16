@@ -16,9 +16,8 @@ type User struct {
 }
 
 type AuthResponse struct {
-	Msg   string `json:"msg"`
-	User  `json:"user"`
-	Error string `json:"error,omitempty"`
+	Msg  string `json:"msg"`
+	User `json:"user"`
 }
 
 var httpClient = &http.Client{
@@ -33,29 +32,29 @@ func IsAuthenticated(token string) (AuthResponse, int) {
 	}
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		return AuthResponse{Error: "Неверные данные запроса"}, http.StatusBadRequest
+		return AuthResponse{Msg: "Неверные данные запроса"}, http.StatusBadRequest
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return AuthResponse{Error: "Не удалось создать запрос"}, http.StatusBadRequest
+		return AuthResponse{Msg: "Не удалось создать запрос"}, http.StatusBadRequest
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return AuthResponse{Error: "Служба аутентификации недоступна"}, http.StatusBadGateway
+		return AuthResponse{Msg: "Служба аутентификации недоступна"}, http.StatusBadGateway
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return AuthResponse{Error: "Не авторизованный пользователь"}, resp.StatusCode
+		return AuthResponse{Msg: "Не авторизованный пользователь"}, resp.StatusCode
 	}
 
 	var authResp AuthResponse
-	if err := json.NewDecoder(resp.Body).Decode(&authResp.User); err != nil {
-		return AuthResponse{Error: "Не удалось проанализировать ответ"}, http.StatusInternalServerError
+	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
+		return AuthResponse{Msg: "Не удалось проанализировать ответ"}, http.StatusInternalServerError
 	}
 
 	return authResp, http.StatusOK
