@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"log"
-	"time"
 
 	appcfg "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/minio/minio-go/v7"
@@ -27,8 +26,7 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		log.Fatalf("failed to initialize MinIO client: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	exists, err := client.BucketExists(ctx, cfg.Bucket)
 	if err != nil {
@@ -42,7 +40,7 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 		}
 	}
 
-	folderName := "unprocessed_videos"
+	folderName := "video_files"
 	folderPath := folderName + "/"
 
 	client.PutObject(ctx, cfg.Bucket, folderPath, nil, 0,

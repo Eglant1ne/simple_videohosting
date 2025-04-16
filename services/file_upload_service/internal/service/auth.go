@@ -16,7 +16,8 @@ type User struct {
 }
 
 type AuthResponse struct {
-	User  *User  `json:"user,omitempty"`
+	Msg   string `json:"msg"`
+	User  `json:"user"`
 	Error string `json:"error,omitempty"`
 }
 
