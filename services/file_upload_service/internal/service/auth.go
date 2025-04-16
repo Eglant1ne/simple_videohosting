@@ -53,7 +53,7 @@ func IsAuthenticated(token string) (AuthResponse, int) {
 	}
 
 	var authResp AuthResponse
-	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&authResp.User); err != nil {
 		return AuthResponse{Error: "Не удалось проанализировать ответ"}, http.StatusInternalServerError
 	}
 
