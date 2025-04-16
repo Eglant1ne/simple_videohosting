@@ -17,7 +17,10 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-const defaultPartSize = 32 << 20
+const (
+	defaultPartSize = 32 << 20
+	maxFileSize     = 20 << 30
+)
 
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer *service.KafkaProducer, kafkaTopic string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +35,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			return
 		}
 
-		r.Body = http.MaxBytesReader(w, r.Body, 20<<30)
+		r.Body = http.MaxBytesReader(w, r.Body, maxFileSize)
 		reader, err := r.MultipartReader()
 		if err != nil {
 			api.JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения файла: %v", err))
