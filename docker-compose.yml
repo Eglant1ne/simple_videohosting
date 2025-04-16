@@ -93,7 +93,37 @@ services:
                 condition: service_healthy
             kafka:
                 condition: service_healthy
+        
+    video_postprocess_service:
+        build:
+            context: ./services/video_postprocess_service
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        ports:
+        - "8090:8090"
+        environment:
+            DEBUG_MODE: ${DEBUG_MODE}
+            S3_BUCKET: files
+            S3_REGION: us-east-1
+            MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+            MINIO_STALE_UPLOADS_EXPIRY: ${MINIO_STALE_UPLOADS_EXPIRY}
 
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_interval: 10s
+
+        depends_on:
+            minio:
+                condition: service_healthy
+            auth_service:
+                condition: service_healthy
+            kafka:
+                condition: service_healthy
 
     minio:
         image: minio/minio
