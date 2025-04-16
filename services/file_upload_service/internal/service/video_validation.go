@@ -22,7 +22,8 @@ func IsVideoFile(part io.Reader, filename string) (io.Reader, bool, error) {
 
 	ext := strings.ToLower(filepath.Ext(filename))
 	videoExtensions := map[string]bool{
-		".mp4": true, ".mov": true, ".avi": true, ".mkv": true, ".webm": true,
+		".mp4": true, ".mov": true, ".avi": true, ".mkv": true,
+		".webm": true, "wmi": true, "avchd": true, "flv": true,
 	}
 	if !videoExtensions[ext] {
 		return nil, false, nil
