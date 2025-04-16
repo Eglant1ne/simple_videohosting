@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -106,7 +105,7 @@ func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io
 	}
 
 	ext := filepath.Ext(part.FileName())
-	fileName := hex.EncodeToString(videoID[:]) + ext
+	fileName := videoID.String() + ext
 	fullPath := minioSvc.UnprocessedVideosFolder + "/" + fileName
 
 	_, err = minioSvc.Client.PutObject(ctx, cfg.Bucket, fullPath, reader, -1, minio.PutObjectOptions{
