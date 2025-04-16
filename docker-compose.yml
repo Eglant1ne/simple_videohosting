@@ -168,11 +168,11 @@ services:
             CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
             KAFKA_BROKER_ID: 1
             KAFKA_PROCESS_ROLES: broker,controller
-            KAFKA_LISTENERS: PLAINTEXT://localhost:9090,CONTROLLER://localhost:9093,PLAINTEXT_DOCKER://kafka:9092
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9090,PLAINTEXT_DOCKER://kafka:9092
+            KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
             KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_DOCKER:PLAINTEXT
-            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
             KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
             KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -184,7 +184,7 @@ services:
             - ./kafka_data:/var/lib/kafka/data
 
         healthcheck:
-            test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9090" ]
+            test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--list", "--bootstrap-server", "kafka:9092" ]
             interval: 30s
             timeout: 10s
             retries: 3
