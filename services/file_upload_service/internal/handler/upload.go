@@ -65,7 +65,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 		}
 
 		log.Printf("Message sent to Kafka: topic=%s key=%s value=%s\n", kafkaTopic, videoID.String(),
-			fmt.Sprintf(`{"user_id": "%s", "video_path": "%s/%s"}`, authResp.User.ID, minioSvc.UnprocessedVideosFolder, fileName))
+			fmt.Sprintf(`{"user_id": "%v", "video_path": "%s/%s"}`, authResp.User.ID, minioSvc.UnprocessedVideosFolder, fileName))
 
 		JSONResponse(w, http.StatusOK, "Файл успешно создан")
 	}
@@ -117,7 +117,7 @@ func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io
 }
 
 func sendToKafka(producer *service.KafkaProducer, topic string, authResp *service.AuthResponse, folderPath, fileName string) error {
-	log.Printf("DEBUG: Sending to Kafka. UserID: %s, VideoPath: %s/%s", authResp.User.ID, folderPath, fileName)
+	log.Printf("DEBUG: Sending to Kafka. UserID: %v, VideoPath: %s/%s", authResp.User.ID, folderPath, fileName)
 	msg := map[string]any{
 		"user_id":    authResp.User.ID,
 		"video_path": folderPath + "/" + fileName,

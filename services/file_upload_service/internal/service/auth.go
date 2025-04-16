@@ -8,16 +8,16 @@ import (
 )
 
 type User struct {
-	ID         string `json:"id"`
-	Username   string `json:"username"`
-	Email      string `json:"email"`
-	CreatedAt  string `json:"created_at"`
-	AvatarPath string `json:"avatar_path"`
+	ID         int     `json:"id"`
+	Username   string  `json:"username"`
+	Email      string  `json:"email"`
+	CreatedAt  string  `json:"created_at"`
+	AvatarPath *string `json:"avatar_path"`
 }
 
 type AuthResponse struct {
 	Msg  string `json:"msg"`
-	User `json:"user"`
+	User User   `json:"user"`
 }
 
 var httpClient = &http.Client{
