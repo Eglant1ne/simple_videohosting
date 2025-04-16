@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
 	"encoding/json"
@@ -10,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-	"strings"
 
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
@@ -22,30 +20,6 @@ const (
 	defaultPartSize = 32 << 20
 	maxFileSize     = 20 << 30
 )
-
-func IsVideoFile(part io.Reader, filename string) (io.Reader, bool, error) {
-	buffer := make([]byte, 512)
-	n, err := part.Read(buffer)
-	if err != nil && err != io.EOF {
-		return nil, false, err
-	}
-
-	mimeType := http.DetectContentType(buffer[:n])
-	if !strings.HasPrefix(mimeType, "video/") {
-		return nil, false, nil
-	}
-
-	ext := strings.ToLower(filepath.Ext(filename))
-	videoExtensions := map[string]bool{
-		".mp4": true, ".mov": true, ".avi": true, ".mkv": true, ".webm": true,
-	}
-	if !videoExtensions[ext] {
-		return nil, false, nil
-	}
-
-	fullReader := io.MultiReader(bytes.NewReader(buffer[:n]), part)
-	return fullReader, true, nil
-}
 
 func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer *service.KafkaProducer, kafkaTopic string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +59,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			part, err = reader.NextPart()
 		}
 
-		fullReader, isVideo, err := IsVideoFile(part, part.FileName())
+		fullReader, isVideo, err := service.IsVideoFile(part, part.FileName())
 		if err != nil {
 			JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка проверки файла: %v", err))
 			return
