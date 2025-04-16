@@ -26,7 +26,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			api.JSONResponse(w, http.StatusUnauthorized, "Не авторизованный пользователь!")
 			return
 		}
-		authResp, statusCode := api.IsAuthenticated(r.Context(), access_token)
+		authResp, statusCode := api.IsAuthenticated(access_token)
 		if statusCode != http.StatusOK {
 			api.JSONResponse(w, statusCode, authResp.Error)
 			return

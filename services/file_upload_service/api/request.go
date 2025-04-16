@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -21,31 +20,29 @@ type AuthResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
-func IsAuthenticated(ctx context.Context, token string) (AuthResponse, int) {
+var httpClient = &http.Client{
+	Timeout: 3 * time.Second,
+}
+
+func IsAuthenticated(token string) (AuthResponse, int) {
 	url := "http://auth_service:8000/auth/token"
 
 	requestBody := map[string]string{
 		"token": token,
 	}
-
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
 		return AuthResponse{Error: "Неверные данные запроса"}, http.StatusBadRequest
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return AuthResponse{Error: "Не удалось создать запрос"}, http.StatusBadRequest
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{
-		Timeout: 3 * time.Second,
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return AuthResponse{Error: "Служба аутентификации недоступна"}, http.StatusBadGateway
 	}
@@ -57,7 +54,7 @@ func IsAuthenticated(ctx context.Context, token string) (AuthResponse, int) {
 
 	var authResp AuthResponse
 	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
-		return AuthResponse{Error: "Не удалось проанализировать ответ аутентификации"}, http.StatusInternalServerError
+		return AuthResponse{Error: "Не удалось проанализировать ответ"}, http.StatusInternalServerError
 	}
 
 	return authResp, http.StatusOK
