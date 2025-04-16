@@ -20,7 +20,7 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading kafka")
 	}
-	log.Println("Kafka is loaded ")
+	log.Println("unprocessed_video_uploaded ")
 	kafkaTopic := "video-uploads"
 	defer producer.Close()
 
