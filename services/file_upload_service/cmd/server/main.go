@@ -21,7 +21,7 @@ func main() {
 		fmt.Println("Error loading kafka")
 	}
 	log.Println("unprocessed_video_uploaded ")
-	kafkaTopic := "video-uploads"
+	kafkaTopic := "unprocessed_video_uploaded"
 	defer producer.Close()
 
 	r := chi.NewRouter()

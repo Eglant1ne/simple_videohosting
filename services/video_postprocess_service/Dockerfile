@@ -17,10 +17,10 @@ COPY . .
 
 RUN rm -f go.mod
 RUN rm -f go.sum
-RUN go mod init github.com/Eglant1ne/simple_videohosting/services/video_postprocess
+RUN go mod init github.com/Eglant1ne/simple_videohosting/services/video_postprocess_service
 RUN go mod tidy
 RUN go build ./cmd/server/
 
-EXPOSE 8080
+EXPOSE 8090
 
 CMD ["./server"]

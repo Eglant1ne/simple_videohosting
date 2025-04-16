@@ -3,23 +3,20 @@ import uvicorn
 
 import healthcheck
 import get_info
-import kafka
+import message_broker
 
 import database
 
 from fastapi import FastAPI
 
-
 from config import DEBUG_MODE, WORKER_THREADS
-
-
 
 app = FastAPI(docs_url='/docs' if DEBUG_MODE.debug_mode else None,
               redoc_url='/redoc' if DEBUG_MODE.debug_mode else None)
 
 app.include_router(healthcheck.router)
 app.include_router(get_info.router.router)
-app.include_router(kafka.router.router)
+app.include_router(message_broker.router.router)
 
 
 async def main():

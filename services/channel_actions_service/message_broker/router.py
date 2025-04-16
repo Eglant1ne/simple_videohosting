@@ -1,3 +1,3 @@
 from faststream.kafka.fastapi import KafkaRouter
 
-router = KafkaRouter('kafka:9092')
+router = KafkaRouter('message_broker:9092')

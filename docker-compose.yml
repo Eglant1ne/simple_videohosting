@@ -120,8 +120,6 @@ services:
         depends_on:
             minio:
                 condition: service_healthy
-            auth_service:
-                condition: service_healthy
             kafka:
                 condition: service_healthy
 
@@ -199,24 +197,24 @@ services:
             KAFKA_KRAFT_MODE: true
             KAFKA_BROKER_ID: 1
             KAFKA_PROCESS_ROLES: broker,controller
-            KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+            KAFKA_LISTENERS: PLAINTEXT://message_broker:9092,CONTROLLER://message_broker:9093
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://message_broker:9092
             KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
             KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@message_broker:9093
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
             KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
             KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
             KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
             KAFKA_NUM_PARTITIONS: 3
-            KAFKA_LOG_DIRS: /var/lib/kafka/data
+            KAFKA_LOG_DIRS: /var/lib/message_broker/data
 
         volumes:
-            - ./kafka_data:/var/lib/kafka/data
+            - ./kafka_data:/var/lib/message_broker/data
         user: "root"
 
         healthcheck:
-            test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--list", "--bootstrap-server", "kafka:9092" ]
+            test: [ "CMD", "/opt/message_broker/bin/message_broker-topics.sh", "--list", "--bootstrap-server", "message_broker:9092" ]
             interval: 30s
             timeout: 10s
             retries: 3

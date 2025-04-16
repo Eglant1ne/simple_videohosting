@@ -12,8 +12,8 @@ from database.video_info import VideoInfo
 
 
 @router.publisher("convert_video_to_hls")
-@router.subscriber("unprocessed_video_uploaded")
-async def handle_unprocessed_video(info: UnprocessedVideoUploaded) -> bytes:
+@router.subscriber("unprocessed_video_uploaded", group_id="unprocessed_video_uploaded")
+async def handle_unprocessed_video_uploaded(info: UnprocessedVideoUploaded) -> bytes:
     video_uuid = uuid.uuid4()
     async with async_session() as session:
         video_info_db = VideoInfo(uuid=video_uuid, author_id=info.user_id)
@@ -21,7 +21,6 @@ async def handle_unprocessed_video(info: UnprocessedVideoUploaded) -> bytes:
         await session.commit()
 
     return orjson.dumps({"video_path": info.video_path, "uuid": video_uuid})
-
 
 
 @router.subscriber("confirm_video_hls_converting")
