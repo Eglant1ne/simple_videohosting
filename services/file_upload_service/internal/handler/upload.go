@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"path/filepath"
 
 	api "github.com/Eglant1ne/simple_videohosting/services/file_upload_service/api"
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/config"
@@ -24,7 +26,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			api.JSONResponse(w, http.StatusUnauthorized, "Не авторизованный пользователь!")
 			return
 		}
-		authResp, statusCode := api.IsAuthenticated(access_token)
+		authResp, statusCode := api.IsAuthenticated(r.Context(), access_token)
 		if statusCode != http.StatusOK {
 			api.JSONResponse(w, statusCode, authResp.Error)
 			return
@@ -38,9 +40,6 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 		}
 
 		part, err := reader.NextPart()
-		if err != nil {
-			api.JSONResponse(w, http.StatusBadRequest, fmt.Sprintf("Ошибка чтения части: %v", err))
-		}
 		for {
 			if err == io.EOF {
 				api.JSONResponse(w, http.StatusBadRequest, "Нет файла")
@@ -62,8 +61,10 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 		videoID, err := uuid.NewRandom()
 		if err != nil {
 			api.JSONResponse(w, http.StatusBadGateway, (fmt.Sprintf("ошибка генерации uuid %v", err)))
+			return
 		}
-		fileName := string(hex.EncodeToString(videoID[:])) + part.FileName()[len(part.FileName())-4:]
+		ext := filepath.Ext(part.FileName())
+		fileName := hex.EncodeToString(videoID[:]) + ext
 
 		fullPath := minioSvc.UnprocessedVideosFolder + "/" + fileName
 
@@ -84,6 +85,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			return
 		}
 
+		log.Printf("Отправлено сообщение в Kafka: topic=%s key=%s value=%s\n", kafkaTopic, videoID.String(), string(msgBytes))
 		api.JSONResponse(w, http.StatusOK, "Файл успешно создан")
 
 	}

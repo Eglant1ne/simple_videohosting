@@ -2,8 +2,10 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type User struct {
@@ -19,7 +21,7 @@ type AuthResponse struct {
 	Error string `json:"error,omitempty"`
 }
 
-func IsAuthenticated(token string) (AuthResponse, int) {
+func IsAuthenticated(ctx context.Context, token string) (AuthResponse, int) {
 	url := "http://auth_service:8000/auth/token"
 
 	requestBody := map[string]string{
@@ -28,41 +30,34 @@ func IsAuthenticated(token string) (AuthResponse, int) {
 
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		return AuthResponse{
-			Error: "Неверные данные запроса",
-		}, http.StatusBadRequest
+		return AuthResponse{Error: "Неверные данные запроса"}, http.StatusBadRequest
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return AuthResponse{
-			Error: "Не удалось создать запрос",
-		}, http.StatusBadRequest
+		return AuthResponse{Error: "Не удалось создать запрос"}, http.StatusBadRequest
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return AuthResponse{
-			Error: "Служба аутентификации недоступна",
-		}, http.StatusBadGateway
+		return AuthResponse{Error: "Служба аутентификации недоступна"}, http.StatusBadGateway
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return AuthResponse{
-			Error: "Не авторизованный пользователь",
-		}, resp.StatusCode
+		return AuthResponse{Error: "Не авторизованный пользователь"}, resp.StatusCode
 	}
 
 	var authResp AuthResponse
 	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
-		return AuthResponse{
-			Error: "Не удалось проанализировать ответ аутентификации",
-		}, http.StatusInternalServerError
+		return AuthResponse{Error: "Не удалось проанализировать ответ аутентификации"}, http.StatusInternalServerError
 	}
 
 	return authResp, http.StatusOK
