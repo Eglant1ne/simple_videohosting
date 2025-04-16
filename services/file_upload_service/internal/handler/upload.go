@@ -58,7 +58,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer 
 			return
 		}
 
-		if err := sendToKafka(producer, kafkaTopic, &authResp, minioSvc.UnprocessedVideosFolder, fileName, videoID); err != nil {
+		if err := sendToKafka(producer, kafkaTopic, &authResp, minioSvc.UnprocessedVideosFolder, fileName); err != nil {
 			log.Printf("Error send message: %v", err)
 			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
 			return
@@ -116,7 +116,8 @@ func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io
 	return videoID, fileName, err
 }
 
-func sendToKafka(producer *service.KafkaProducer, topic string, authResp *service.AuthResponse, folderPath, fileName string, videoID uuid.UUID) error {
+func sendToKafka(producer *service.KafkaProducer, topic string, authResp *service.AuthResponse, folderPath, fileName string) error {
+	log.Printf("DEBUG: Sending to Kafka. UserID: %s, VideoPath: %s/%s", authResp.User.ID, folderPath, fileName)
 	msg := map[string]any{
 		"user_id":    authResp.User.ID,
 		"video_path": folderPath + "/" + fileName,
@@ -126,6 +127,6 @@ func sendToKafka(producer *service.KafkaProducer, topic string, authResp *servic
 	if err != nil {
 		return fmt.Errorf("ошибка формирования сообщения: %v", err)
 	}
-
-	return producer.SendMessage(topic, videoID.String(), msgBytes)
+	log.Printf("DEBUG: Kafka message JSON: %s", string(msgBytes))
+	return producer.SendMessage(topic, fileName, msgBytes)
 }
