@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -15,14 +16,22 @@ func main() {
 
 	minioSvc := service.NewMinIOService(cfg)
 
+	producer, err := service.NewKafkaProducer([]string{"kafka:9092"})
+	if err != nil {
+		fmt.Println("Error loading kafka")
+	}
+	kafkaTopic := "video-uploads"
+	defer producer.Close()
+
 	r := chi.NewRouter()
 	//healthcheck
 	r.Get("/health", handler.HealthCheckHandler)
 
-	r.Post("/upload/video", handler.UploadHandler(minioSvc, &cfg))
+	r.Post("/upload/video", handler.UploadHandler(minioSvc, &cfg, producer, kafkaTopic))
 
 	log.Println("Server listening on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
+
 }

@@ -6,7 +6,20 @@ import (
 	"net/http"
 )
 
-func IsAuthenticated(token string) int {
+type User struct {
+	ID         string `json:"id"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	CreatedAt  string `json:"created_at"`
+	AvatarPath string `json:"avatar_path"`
+}
+
+type AuthResponse struct {
+	User  *User  `json:"user,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+
+func IsAuthenticated(token string) (AuthResponse, int) {
 	url := "http://auth_service:8000/auth/token"
 
 	requestBody := map[string]string{
@@ -15,12 +28,16 @@ func IsAuthenticated(token string) int {
 
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		return http.StatusBadRequest
+		return AuthResponse{
+			Error: "Неверные данные запроса",
+		}, http.StatusBadRequest
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return http.StatusBadRequest
+		return AuthResponse{
+			Error: "Не удалось создать запрос",
+		}, http.StatusBadRequest
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -29,8 +46,24 @@ func IsAuthenticated(token string) int {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return http.StatusBadGateway
+		return AuthResponse{
+			Error: "Служба аутентификации недоступна",
+		}, http.StatusBadGateway
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return AuthResponse{
+			Error: "Не авторизованный пользователь",
+		}, resp.StatusCode
 	}
 
-	return resp.StatusCode
+	var authResp AuthResponse
+	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
+		return AuthResponse{
+			Error: "Не удалось проанализировать ответ аутентификации",
+		}, http.StatusInternalServerError
+	}
+
+	return authResp, http.StatusOK
 }

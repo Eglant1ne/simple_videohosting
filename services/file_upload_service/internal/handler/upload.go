@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,14 +17,16 @@ import (
 
 const defaultPartSize = 32 << 20
 
-func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.HandlerFunc {
+func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, producer *service.KafkaProducer, kafkaTopic string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		access_token, err := getCookieHandler(w, r)
 		if err != nil {
 			api.JSONResponse(w, http.StatusUnauthorized, "Не авторизованный пользователь!")
 			return
 		}
-		if api.IsAuthenticated(access_token) != 200 {
+		authResp, statusCode := api.IsAuthenticated(access_token)
+		if statusCode != http.StatusOK {
+			api.JSONResponse(w, statusCode, authResp.Error)
 			return
 		}
 
@@ -56,13 +59,31 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config) http.Hand
 		}
 
 		ctx := context.Background()
-		videoid, err := uuid.NewRandom()
+		videoID, err := uuid.NewRandom()
 		if err != nil {
 			api.JSONResponse(w, http.StatusBadGateway, (fmt.Sprintf("ошибка генерации uuid %v", err)))
 		}
-		fileName := string(hex.EncodeToString(videoid[:])) + part.FileName()[len(part.FileName())-4:]
+		fileName := string(hex.EncodeToString(videoID[:])) + part.FileName()[len(part.FileName())-4:]
 
-		minioSvc.Client.PutObject(ctx, cfg.Bucket, minioSvc.UnprocessedVideosFolder+"/"+fileName, part, -1, minio.PutObjectOptions{PartSize: defaultPartSize})
+		fullPath := minioSvc.UnprocessedVideosFolder + "/" + fileName
+
+		minioSvc.Client.PutObject(ctx, cfg.Bucket, fullPath, part, -1, minio.PutObjectOptions{PartSize: defaultPartSize})
+		msg := map[string]interface{}{
+			"user_id":    authResp.User.ID,
+			"video_path": fullPath,
+		}
+
+		msgBytes, err := json.Marshal(msg)
+		if err != nil {
+			api.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка формирования сообщения: %v", err))
+			return
+		}
+
+		if err := producer.SendMessage(kafkaTopic, videoID.String(), msgBytes); err != nil {
+			api.JSONResponse(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
+			return
+		}
+
 		api.JSONResponse(w, http.StatusOK, "Файл успешно создан")
 
 	}
