@@ -22,7 +22,6 @@ func main() {
 	}
 	defer processor.Close()
 
-	processor.StartWorkers()
 	go processor.StartConsumers()
 
 	r := chi.NewRouter()

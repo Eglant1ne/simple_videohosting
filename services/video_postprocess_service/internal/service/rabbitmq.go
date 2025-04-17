@@ -1,107 +1,79 @@
 package service
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
 	"log"
-	"path/filepath"
-	"strings"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func (vp *VideoProcessor) StartConsumers() {
+func (vp *VideoProcessor) StartConsumers() error {
 	ch, err := vp.rabbitConn.Channel()
 	if err != nil {
 		log.Fatalf("Failed to open channel: %v", err)
+		return err
 	}
 	defer ch.Close()
 
-	err = ch.ExchangeDeclare(
+	_, err = ch.QueueDeclare(
 		"unprocessed_video_uploaded",
-		"topic",
 		true,
 		false,
 		false,
 		false,
-		nil,
+		amqp.Table{"delivery_mode": 2},
 	)
-	if err != nil {
-		log.Fatalf("Failed to declare exchange: %v", err)
-	}
 
 	q, err := ch.QueueDeclare(
-		"",
-		false,
-		false,
+		"convert_video_to_hls",
 		true,
 		false,
-		nil,
+		false,
+		false,
+		amqp.Table{"delivery_mode": 2},
 	)
+
 	if err != nil {
 		log.Fatalf("Failed to declare queue: %v", err)
+		return err
 	}
 
-	err = ch.QueueBind(
-		q.Name,
-		"#",
-		"unprocessed_video_uploaded",
-		false,
-		nil,
-	)
+	err = ch.Qos(vp.cfg.ConsumeWorkers, 0, false)
 	if err != nil {
-		log.Fatalf("Failed to bind queue: %v", err)
+		log.Fatalf("Ошибка установки QoS: %s", err)
 	}
 
 	msgs, err := ch.Consume(
 		q.Name,
 		"",
-		true,
+		false,
 		false,
 		false,
 		false,
 		nil,
 	)
+
 	if err != nil {
 		log.Fatalf("Failed to register consumer: %v", err)
-	}
-
-	for msg := range msgs {
-		var uploadEvent struct {
-			UserID    string `json:"user_id"`
-			VideoPath string `json:"video_path"`
-		}
-
-		if err := json.Unmarshal(msg.Body, &uploadEvent); err != nil {
-			log.Printf("Failed to parse message: %v", err)
-			continue
-		}
-
-		videoUUID := strings.TrimSuffix(filepath.Base(uploadEvent.VideoPath), filepath.Ext(uploadEvent.VideoPath))
-
-		if err := vp.publishConversionTask(uploadEvent.VideoPath, videoUUID); err != nil {
-			log.Printf("Failed to publish conversion task: %v", err)
-		}
-	}
-}
-
-func (vp *VideoProcessor) publishConversionTask(videoPath, videoUUID string) error {
-	ch, err := vp.rabbitConn.Channel()
-	if err != nil {
 		return err
 	}
-	defer ch.Close()
 
-	return ch.PublishWithContext(context.Background(),
-		"",
-		"convert_video_to_hls",
-		false,
-		false,
-		amqp.Publishing{
-			ContentType:  "application/json",
-			DeliveryMode: amqp.Persistent,
-			MessageId:    videoUUID,
-			Body:         []byte(fmt.Sprintf(`{"video_path": "%s", "uuid": "%s"}`, videoPath, videoUUID)),
-		})
+	go func() {
+		for msg := range msgs {
+			go func(m amqp.Delivery) {
+				err = vp.processVideo(msg)
+
+				if err != nil {
+					log.Printf("Ошибка при обработке сообщения")
+					_ = msg.Nack(false, true)
+					return
+				}
+
+				if err := msg.Ack(false); err != nil {
+					log.Printf("Ошибка подтверждения сообщения: %s", err)
+				}
+			}(msg)
+		}
+	}()
+	log.Println("Начало обработки сообщений.")
+	return nil
 }

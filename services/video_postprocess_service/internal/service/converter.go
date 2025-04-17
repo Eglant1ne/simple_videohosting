@@ -38,48 +38,8 @@ func NewVideoProcessor(cfg *appcfg.Config) (*VideoProcessor, error) {
 	}, nil
 }
 
-func (vp *VideoProcessor) StartWorkers() {
-	for i := 0; i < vp.cfg.ConsumeWorkers; i++ {
-		vp.wg.Add(1)
-		go vp.worker(i)
-	}
-}
-
-func (vp *VideoProcessor) worker(workerID int) {
-	defer vp.wg.Done()
-
-	ch, err := vp.rabbitConn.Channel()
-	if err != nil {
-		log.Printf("Worker %d: failed to open channel: %v", workerID, err)
-		return
-	}
-	defer ch.Close()
-
-	msgs, err := ch.Consume(
-		"convert_video_to_hls",
-		fmt.Sprintf("worker_%d", workerID),
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Printf("Worker %d: failed to register consumer: %v", workerID, err)
-		return
-	}
-
-	for msg := range msgs {
-		if err := vp.processVideo(msg); err != nil {
-			log.Printf("Worker %d: failed to process video: %v", workerID, err)
-			msg.Nack(false, true)
-			continue
-		}
-		msg.Ack(false)
-	}
-}
-
 func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
+	log.Println("Началась обработка видео")
 	var task struct {
 		VideoPath string `json:"video_path"`
 		UUID      string `json:"uuid"`
@@ -89,13 +49,13 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		return fmt.Errorf("failed to parse message: %v", err)
 	}
 
-	tempDir, err := os.MkdirTemp("", "video_processing")
+	tempDir, err := os.MkdirTemp("", task.UUID)
 	if err != nil {
 		return fmt.Errorf("failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	inputFile := filepath.Join(tempDir, "input.mp4")
+	inputFile := filepath.Join(tempDir, task.VideoPath)
 	err = vp.minio.Client.FGetObject(context.Background(), vp.cfg.Bucket, task.VideoPath, inputFile, minio.GetObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to download video from MinIO: %v", err)
