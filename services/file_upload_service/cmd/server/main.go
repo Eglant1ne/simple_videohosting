@@ -13,12 +13,10 @@ import (
 func main() {
 	cfg := config.Load()
 
-	// Инициализация сервисов
 	minioSvc := service.NewMinIOService(cfg)
 	rabbitSvc := service.NewRabbitMQService(&cfg)
 	defer rabbitSvc.Close()
 
-	// Настройка роутера
 	r := chi.NewRouter()
 	r.Get("/health", handler.HealthCheckHandler)
 	r.Post("/upload/video", handler.UploadHandler(minioSvc, &cfg, rabbitSvc))
