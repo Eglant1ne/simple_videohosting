@@ -12,7 +12,6 @@ func (vp *VideoProcessor) StartConsumers() error {
 		log.Fatalf("Failed to open channel: %v", err)
 		return err
 	}
-	defer ch.Close()
 
 	_, err = ch.QueueDeclare(
 		"unprocessed_video_uploaded",
@@ -60,19 +59,23 @@ func (vp *VideoProcessor) StartConsumers() error {
 	go func() {
 		for msg := range msgs {
 			go func(m amqp.Delivery) {
-				err = vp.processVideo(msg)
+				log.Printf("Rabbitmq Text: %s", msg.Body)
+				err := vp.processVideo(m)
 
 				if err != nil {
-					log.Printf("Ошибка при обработке сообщения")
-					_ = msg.Nack(false, true)
+					log.Printf("Ошибка при обработке сообщения: %s", err)
+					if err := m.Nack(false, true); err != nil {
+						log.Printf("Ошибка при отклонении сообщения: %s", err)
+					}
 					return
 				}
 
-				if err := msg.Ack(false); err != nil {
+				if err := m.Ack(false); err != nil {
 					log.Printf("Ошибка подтверждения сообщения: %s", err)
 				}
 			}(msg)
 		}
+		defer ch.Close()
 	}()
 	log.Println("Начало обработки сообщений.")
 	return nil

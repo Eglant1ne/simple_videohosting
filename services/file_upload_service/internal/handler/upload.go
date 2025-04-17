@@ -58,7 +58,7 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, rabbitSvc
 		}
 
 		videoPath := fmt.Sprintf("%s/%s", minioSvc.UnprocessedVideosFolder, fileName)
-		if err := rabbitSvc.PublishVideoUploadEvent(videoPath); err != nil {
+		if err := rabbitSvc.PublishVideoUploadEvent(videoPath, authResp.User.ID); err != nil {
 			log.Printf("Error send message: %v", err)
 			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
 			return

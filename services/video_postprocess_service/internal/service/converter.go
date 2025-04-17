@@ -39,7 +39,7 @@ func NewVideoProcessor(cfg *appcfg.Config) (*VideoProcessor, error) {
 }
 
 func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
-	log.Println("Началась обработка видео")
+	log.Printf("Началась обработка видео")
 	var task struct {
 		VideoPath string `json:"video_path"`
 		UUID      string `json:"uuid"`
@@ -72,9 +72,9 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		"256:144",   // 144p
 	}
 
-	for _, res := range resolutions {
-		if err := vp.convertToHLS(inputFile, task.UUID, res, tempDir); err != nil {
-			return fmt.Errorf("failed to convert to %s: %v", res, err)
+	for _, resolution := range resolutions {
+		if err := vp.convertToHLS(inputFile, task.UUID, resolution, tempDir); err != nil {
+			return fmt.Errorf("failed to convert to %s: %v", resolution, err)
 		}
 	}
 
@@ -87,14 +87,14 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 
 func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir string) error {
 	resParts := strings.Split(resolution, ":")
-	resName := resParts[1] + "p"
-	outputDir := filepath.Join(tempDir, resName)
+
+	resName := fmt.Sprintf("%sp-%s", resParts[1], videoUUID)
+	outputDir := filepath.Join(tempDir, "hls")
 
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output dir: %v", err)
 	}
 
-	outputPrefix := fmt.Sprintf("%s-%s", resName, videoUUID)
 	cmd := exec.Command("ffmpeg",
 		"-i", inputFile,
 		"-vf", fmt.Sprintf("scale=%s", resolution),
@@ -106,7 +106,7 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 		"-hls_time", "5",
 		"-hls_list_size", "0",
 		"-f", "hls",
-		filepath.Join(outputDir, fmt.Sprintf("%s.m3u8", outputPrefix)),
+		filepath.Join(outputDir, fmt.Sprintf("%s.m3u8", resName)),
 	)
 
 	cmd.Stdout = os.Stdout
@@ -149,7 +149,6 @@ func (vp *VideoProcessor) sendConfirmation(videoUUID string) error {
 	if err != nil {
 		return err
 	}
-	defer ch.Close()
 
 	return ch.PublishWithContext(context.Background(),
 		"",

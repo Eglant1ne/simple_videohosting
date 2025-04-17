@@ -44,7 +44,7 @@ func NewRabbitMQService(cfg *config.Config) *RabbitMQService {
 	}
 }
 
-func (r *RabbitMQService) PublishVideoUploadEvent(videoPath string) error {
+func (r *RabbitMQService) PublishVideoUploadEvent(videoPath string, user_id int) error {
 	return r.Channel.Publish(
 		"",
 		"unprocessed_video_uploaded",
@@ -53,7 +53,7 @@ func (r *RabbitMQService) PublishVideoUploadEvent(videoPath string) error {
 		amqp.Publishing{
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
-			Body:         []byte(fmt.Sprintf(`{"video_path": "%s"}`, videoPath)),
+			Body:         []byte(fmt.Sprintf(`{"video_path": "%s", "user_id": "%d"}`, videoPath, user_id)),
 		},
 	)
 }

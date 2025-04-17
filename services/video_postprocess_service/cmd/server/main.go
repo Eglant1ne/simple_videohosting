@@ -22,7 +22,10 @@ func main() {
 	}
 	defer processor.Close()
 
-	go processor.StartConsumers()
+	err = processor.StartConsumers()
+	if err != nil {
+		log.Fatalf("Failed to initialize consumer: %v", err)
+	}
 
 	r := chi.NewRouter()
 	r.Get("/health", handler.HealthCheckHandler)
@@ -35,13 +38,10 @@ func main() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		log.Println("Server listening on :8090")
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server error: %v", err)
-		}
-	}()
+	log.Println("Server listening on :8090")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server error: %v", err)
+	}
 
-	<-done
 	log.Println("Server stopped")
 }
