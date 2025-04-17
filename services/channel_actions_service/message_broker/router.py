@@ -1,3 +1,6 @@
-from faststream.kafka.fastapi import KafkaRouter
+from faststream.rabbit.fastapi import RabbitRouter
 
-router = KafkaRouter('message_broker:9092')
+from config import RABBITMQ_SETTINGS
+
+rabbitmq_url = f'amqp://{RABBITMQ_SETTINGS.user}:{RABBITMQ_SETTINGS.password}@rabbitmq:5672/'
+router = RabbitRouter(rabbitmq_url)

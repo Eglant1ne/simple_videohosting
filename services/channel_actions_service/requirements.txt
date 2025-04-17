@@ -6,4 +6,4 @@ uvicorn==0.34.0
 asyncpg==0.30.0
 orjson==3.10.16
 aiohttp==3.11.16
-faststream[kafka]==0.5.39
+faststream[rabbit]==0.5.39

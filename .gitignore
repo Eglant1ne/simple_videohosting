@@ -4,6 +4,7 @@ minio_data/
 postgres_data/
 kafka_data/
 redis_data/
+rabbitmq_data/
 
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,pycharm+all,goland,go,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,pycharm+all,goland,go,python

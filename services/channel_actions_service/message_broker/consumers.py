@@ -3,6 +3,7 @@ import uuid
 import orjson
 
 from sqlalchemy import update
+from faststream.rabbit import RabbitQueue
 
 from .router import router
 from .schemas import UnprocessedVideoUploaded, ConfirmVideoHlsConverting
@@ -10,9 +11,21 @@ from .schemas import UnprocessedVideoUploaded, ConfirmVideoHlsConverting
 from database.session import async_session
 from database.video_info import VideoInfo
 
+unprocessed_video_uploaded_queue = RabbitQueue("unprocessed_video_uploaded", durable=True, auto_delete=False,
+                                               exclusive=False,
+                                               arguments={"delivery_mode": 2})
 
-@router.publisher("convert_video_to_hls")
-@router.subscriber("unprocessed_video_uploaded", group_id="unprocessed_video_uploaded")
+convert_video_to_hls_queue = RabbitQueue("convert_video_to_hls", durable=True, auto_delete=False,
+                                         exclusive=False,
+                                         arguments={"delivery_mode": 2})
+
+confirm_video_hls_converting_queue = RabbitQueue("confirm_video_hls_converting", durable=True, auto_delete=False,
+                                                 exclusive=False,
+                                                 arguments={"delivery_mode": 2})
+
+
+@router.publisher(convert_video_to_hls_queue)
+@router.subscriber(unprocessed_video_uploaded_queue)
 async def handle_unprocessed_video_uploaded(info: UnprocessedVideoUploaded) -> bytes:
     video_uuid = uuid.uuid4()
     async with async_session() as session:
@@ -23,7 +36,7 @@ async def handle_unprocessed_video_uploaded(info: UnprocessedVideoUploaded) -> b
     return orjson.dumps({"video_path": info.video_path, "uuid": video_uuid})
 
 
-@router.subscriber("confirm_video_hls_converting")
+@router.subscriber(confirm_video_hls_converting_queue)
 async def confirm_video_hls_converting(info: ConfirmVideoHlsConverting):
     async with async_session() as session:
         await session.execute(

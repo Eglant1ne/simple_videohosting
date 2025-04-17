@@ -28,8 +28,6 @@ services:
                 condition: service_healthy
             postgres:
                 condition: service_healthy
-            kafka:
-                condition: service_healthy
 
 
     file_upload_service:
@@ -48,6 +46,8 @@ services:
             MINIO_ROOT_USER: ${MINIO_ROOT_USER}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
             MINIO_STALE_UPLOADS_EXPIRY: ${MINIO_STALE_UPLOADS_EXPIRY}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
 
         healthcheck:
             test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
@@ -61,7 +61,7 @@ services:
                 condition: service_healthy
             auth_service:
                 condition: service_healthy
-            kafka:
+            rabbitmq:
                 condition: service_healthy
 
 
@@ -78,6 +78,8 @@ services:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB: ${POSTGRES_DB}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
 
         healthcheck:
             test: [ "CMD", "curl", "-f", "http://localhost:7000/health" ]
@@ -91,37 +93,39 @@ services:
                 condition: service_healthy
             auth_service:
                 condition: service_healthy
-            kafka:
+            rabbitmq:
                 condition: service_healthy
         
-    video_postprocess_service:
-        build:
-            context: ./services/video_postprocess_service
-            dockerfile: Dockerfile
-        restart: unless-stopped
-        ports:
-        - "8090:8090"
-        environment:
-            DEBUG_MODE: ${DEBUG_MODE}
-            S3_BUCKET: files
-            S3_REGION: us-east-1
-            MINIO_SERVER_URL: ${MINIO_SERVER_URL}
-            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-            MINIO_STALE_UPLOADS_EXPIRY: ${MINIO_STALE_UPLOADS_EXPIRY}
-
-        healthcheck:
-            test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_interval: 10s
-
-        depends_on:
-            minio:
-                condition: service_healthy
-            kafka:
-                condition: service_healthy
+#    video_postprocess_service:
+#        build:
+#            context: ./services/video_postprocess_service
+#            dockerfile: Dockerfile
+#        restart: unless-stopped
+#        ports:
+#        - "8090:8090"
+#        environment:
+#            DEBUG_MODE: ${DEBUG_MODE}
+#            S3_BUCKET: files
+#            S3_REGION: us-east-1
+#            MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+#            MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+#            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+#            MINIO_STALE_UPLOADS_EXPIRY: ${MINIO_STALE_UPLOADS_EXPIRY}
+#            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+#            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+#
+#        healthcheck:
+#            test: [ "CMD", "curl", "-f", "http://localhost:8090/health" ]
+#            interval: 30s
+#            timeout: 10s
+#            retries: 3
+#            start_interval: 10s
+#
+#        depends_on:
+#            minio:
+#                condition: service_healthy
+#            rabbitmq:
+#                condition: service_healthy
 
     minio:
         image: minio/minio
@@ -185,40 +189,24 @@ services:
             start_interval: 20s
 
 
-    kafka:
-        image: apache/kafka:latest
+    rabbitmq:
+        image: rabbitmq:management
         restart: unless-stopped
         ports:
-            - "9092:9092"
-            - "9093:9093"
-
+            - "5672:5672"
+            - "15672:15672"
         environment:
-            CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
-            KAFKA_KRAFT_MODE: true
-            KAFKA_BROKER_ID: 1
-            KAFKA_PROCESS_ROLES: broker,controller
-            KAFKA_LISTENERS: PLAINTEXT://message_broker:9092,CONTROLLER://message_broker:9093
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://message_broker:9092
-            KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@message_broker:9093
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-            KAFKA_NUM_PARTITIONS: 3
-            KAFKA_LOG_DIRS: /var/lib/message_broker/data
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
 
         volumes:
-            - ./kafka_data:/var/lib/message_broker/data
-        user: "root"
+            -   ./rabbitmq_data:/var/lib/rabbitmq
 
         healthcheck:
-            test: [ "CMD", "/opt/message_broker/bin/message_broker-topics.sh", "--list", "--bootstrap-server", "message_broker:9092" ]
+            test: rabbitmq-diagnostics -q ping
             interval: 30s
-            timeout: 10s
+            timeout: 30s
             retries: 3
-            start_interval: 20s
 
 
     nginx:
