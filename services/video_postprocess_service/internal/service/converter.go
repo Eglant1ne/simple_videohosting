@@ -81,9 +81,14 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		{426, 240},   //240p
 	}
 
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprint("ffmpeg -i %s -master_pl_name master.m3u8 ", inputFile))
+
 	for _, resolution := range resolutions {
 		if resolution[0] <= video_width && resolution[1] <= video_height {
-			video_resolutions = append(video_resolutions, fmt.Sprintf("%d:%d", resolution[0], resolution[1]))
+			resolution_str := fmt.Sprintf("%d:%d", resolution[0], resolution[1])
+			video_resolutions = append(video_resolutions, resolution_str)
+			builder.WriteString(fmt.Sprintf("-vf \"scale=%s\" -c:v libx264 -preset fast -profile:v baseline -level 3.0 -loglevel warning -start_number 0 -hls_time 5 -hls_list_size 0 - f hls \\\n", resolution_str))
 		}
 	}
 
@@ -92,6 +97,10 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 			return fmt.Errorf("failed to convert to %s: %v", converted_resolution, err)
 		}
 	}
+
+	builder.WriteString(filepath.Join(filepath.Join(tempDir, "hls"), fmt.Sprintf("%s.m3u8", "master")))
+	master_file_command := builder.String()
+	exec.Command(master_file_command)
 
 	if err := vp.minio.Client.RemoveObject(context.Background(), vp.cfg.Bucket, task.VideoPath, minio.RemoveObjectOptions{}); err != nil {
 		return fmt.Errorf("failed to remove video from MinIO: %v", err)

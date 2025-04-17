@@ -221,6 +221,7 @@ services:
 
         volumes:
             - ./nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./static:/var/www/static/
 
         depends_on:
             auth_service:

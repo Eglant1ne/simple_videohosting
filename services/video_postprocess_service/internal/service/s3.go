@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -47,6 +49,28 @@ func NewMinIOService(cfg appcfg.Config) *MinIOService {
 
 	client.PutObject(ctx, cfg.Bucket, folderPath, nil, 0,
 		minio.PutObjectOptions{ContentType: "application/x-directory"})
+
+	policy := map[string]interface{}{
+		"Version": "2012-10-17",
+		"Statement": []map[string]interface{}{
+			{
+				"Effect":    "Allow",
+				"Principal": "*",
+				"Action":    "s3:GetObject",
+				"Resource":  fmt.Sprintf("arn:aws:s3:::%s/%s/*", cfg.Bucket, folderName),
+			},
+		},
+	}
+
+	policyJSON, err := json.Marshal(policy)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	err = client.SetBucketPolicy(context.Background(), cfg.Bucket, string(policyJSON))
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	log.Printf("Folder %s created in bucket %s\n", folderName, cfg.Bucket)
 

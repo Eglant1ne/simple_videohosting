@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - IfBest</title>
+    <style>
+        body {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.navbar {
+    background-color: #ff0000;
+    padding: 15px 0;
+    position: relative;
+    z-index: 1000;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column; /* Изменено для вертикального выравнивания */
+    align-items: center; /* Центрирование содержимого */
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px; /* Добавлено для отступа между кнопками и формой */
+}
+
+.btn {
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-login {
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.btn-login:hover {
+    background-color: #333;
+}
+
+.btn-register {
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #000;
+}
+
+.btn-register:hover {
+    background-color: #ddd;
+}
+
+h2 {
+    margin: 20px 0; /* Добавлено для отступа */
+}
+
+form {
+    background-color: #222; /* Фон формы */
+    padding: 20px; /* Отступы внутри формы */
+    border-radius: 5px; /* Закругленные углы */
+    width: 100%; /* Ширина формы */
+    max-width: 400px; /* Максимальная ширина формы */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Тень для формы */
+}
+
+.mb-3 {
+    margin-bottom: 15px; /* Отступ между элементами формы */
+}
+
+.form-label {
+    display: block; /* Блоковое отображение для меток */
+    margin-bottom: 5px; /* Отступ снизу */
+}
+
+.form-control {
+    width: 100%; /* Ширина полей ввода */
+    padding: 10px; /* Отступы внутри полей ввода */
+    border: 1px solid #444; /* Граница полей ввода */
+    border-radius: 5px; /* Закругленные углы */
+    background-color: #333; /* Фон полей ввода */
+    color: #fff; /* Цвет текста */
+}
+
+.form-control:focus {
+    border-color: #ff0000; /* Цвет границы при фокусе */
+    outline: none; /* Убираем стандартный контур */
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-buttons {
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+}
+
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-login">Вход</a>
+                <a href="register.html" class="btn btn-register">Регистрация</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Вход</h2>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="login" class="form-label">Email или Логин</label>
+                <input type="text" class="form-control" id="login" name="login" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Пароль</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-login">Войти</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Отменяем стандартное поведение формы
+
+            // Создаем объект с данными формы
+            const formData = {
+                login: document.getElementById('login').value,
+                password: document.getElementById('password').value
+            };
+
+            // Отправляем данные в формате JSON
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Указываем, что отправляем JSON
+                },
+                body: JSON.stringify(formData) // Преобразуем объект в JSON
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Если вход успешен, перенаправляем пользователя на главную страницу или другую
+                    window.location.href = '/upload_video'; // Замените на нужный URL
+                } else {
+                    // Обработка ошибок
+                    return response.json().then(data => {
+                        alert(data.message || 'Вход не удался');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        });
+    </script>
+</body>
+</html>
