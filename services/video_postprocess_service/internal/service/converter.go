@@ -64,21 +64,37 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		return fmt.Errorf("failed to download video from MinIO: %v", err)
 	}
 
-	resolutions := []string{
-		"3840:2160", // 4K
-		"2560:1440", // 2K
-		"1920:1080", // 1080p
-		"1280:720",  // 720p
-		"854:480",   // 480p
-		"640:360",   // 360p
-		"426:240",   // 240p
-		"256:144",   // 144p
+	video_width, video_height, err := getVideoResolution(inputFile)
+	if err != nil {
+		return fmt.Errorf("failed to get video resolution: %v", err)
+	}
+
+	video_resolutions := []string{"256:144"} //140p
+
+	resolutions := [][]int{
+		{3840, 2160}, //4k
+		{2560, 1440}, //2k
+		{1920, 1080}, //1080p
+		{1280, 720},  //720p
+		{854, 480},   //480p
+		{640, 360},   //360p
+		{426, 240},   //240p
 	}
 
 	for _, resolution := range resolutions {
-		if err := vp.convertToHLS(inputFile, task.UUID, resolution, tempDir); err != nil {
-			return fmt.Errorf("failed to convert to %s: %v", resolution, err)
+		if resolution[0] <= video_width && resolution[1] <= video_height {
+			video_resolutions = append(video_resolutions, fmt.Sprintf("%d:%d", resolution[0], resolution[1]))
 		}
+	}
+
+	for _, converted_resolution := range video_resolutions {
+		if err := vp.convertToHLS(inputFile, task.UUID, converted_resolution, tempDir); err != nil {
+			return fmt.Errorf("failed to convert to %s: %v", converted_resolution, err)
+		}
+	}
+
+	if err := vp.minio.Client.RemoveObject(context.Background(), vp.cfg.Bucket, task.VideoPath, minio.RemoveObjectOptions{}); err != nil {
+		return fmt.Errorf("failed to remove video from MinIO: %v", err)
 	}
 
 	if err := vp.sendConfirmation(task.UUID); err != nil {
