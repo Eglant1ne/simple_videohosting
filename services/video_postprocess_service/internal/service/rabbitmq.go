@@ -75,6 +75,7 @@ func (vp *VideoProcessor) StartConsumers() error {
 				}
 			}(msg)
 		}
+		defer vp.rabbitConn.Close()
 		defer ch.Close()
 	}()
 	log.Println("Начало обработки сообщений.")

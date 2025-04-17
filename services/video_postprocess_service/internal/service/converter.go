@@ -101,7 +101,7 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 		"-c:v", "libx264",
 		"-preset", "fast",
 		"-profile:v", "baseline",
-		"-level", "3.0",
+		"-level", "error",
 		"-start_number", "0",
 		"-hls_time", "5",
 		"-hls_list_size", "0",
