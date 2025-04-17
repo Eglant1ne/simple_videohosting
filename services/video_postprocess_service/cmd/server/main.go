@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/Eglant1ne/simple_videohosting/services/video_postprocess_service/internal/config"
 	"github.com/Eglant1ne/simple_videohosting/services/video_postprocess_service/internal/handler"
@@ -44,5 +46,11 @@ func main() {
 	}()
 
 	<-done
-	log.Println("Server stopped")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed: %+v", err)
+	}
+	log.Println("Server exited properly")
 }
