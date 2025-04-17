@@ -25,7 +25,7 @@ confirm_video_hls_converting_queue = RabbitQueue("confirm_video_hls_converting",
 
 
 @router.publisher(convert_video_to_hls_queue, persist=True)
-@router.subscriber(unprocessed_video_uploaded_queue)
+@router.subscriber(unprocessed_video_uploaded_queue, retry=True)
 async def handle_unprocessed_video_uploaded(info: UnprocessedVideoUploaded) -> bytes:
     video_uuid = uuid.uuid4()
     async with async_session() as session:
@@ -36,10 +36,10 @@ async def handle_unprocessed_video_uploaded(info: UnprocessedVideoUploaded) -> b
     return orjson.dumps({"video_path": info.video_path, "uuid": video_uuid})
 
 
-@router.subscriber(confirm_video_hls_converting_queue)
+@router.subscriber(confirm_video_hls_converting_queue, retry=True)
 async def confirm_video_hls_converting(info: ConfirmVideoHlsConverting):
     async with async_session() as session:
         await session.execute(
-            update(VideoInfo).where(uuid=info.uuid).values(is_complete=True, preview_path=info.preview_path)
+            update(VideoInfo).where(VideoInfo.uuid == info.uuid).values(is_complete=True)
         )
         await session.commit()

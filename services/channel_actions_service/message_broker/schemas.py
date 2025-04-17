@@ -8,4 +8,3 @@ class UnprocessedVideoUploaded(BaseModel):
 
 class ConfirmVideoHlsConverting(BaseModel):
     uuid: UUID4
-    preview_path: str

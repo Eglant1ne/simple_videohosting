@@ -38,48 +38,8 @@ func NewVideoProcessor(cfg *appcfg.Config) (*VideoProcessor, error) {
 	}, nil
 }
 
-func (vp *VideoProcessor) StartWorkers() {
-	for i := range vp.cfg.ConsumeWorkers {
-		vp.wg.Add(1)
-		go vp.worker(i)
-	}
-}
-
-func (vp *VideoProcessor) worker(workerID int) {
-	defer vp.wg.Done()
-
-	ch, err := vp.rabbitConn.Channel()
-	if err != nil {
-		log.Printf("Worker %d: failed to open channel: %v", workerID, err)
-		return
-	}
-	defer ch.Close()
-
-	msgs, err := ch.Consume(
-		"convert_video_to_hls",
-		fmt.Sprintf("worker_%d", workerID),
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Printf("Worker %d: failed to register consumer: %v", workerID, err)
-		return
-	}
-
-	for msg := range msgs {
-		if err := vp.processVideo(msg); err != nil {
-			log.Printf("Worker %d: failed to process video: %v", workerID, err)
-			msg.Nack(false, true)
-			continue
-		}
-		msg.Ack(false)
-	}
-}
-
 func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
+	log.Printf("Началась обработка видео")
 	var task struct {
 		VideoPath string `json:"video_path"`
 		UUID      string `json:"uuid"`
@@ -89,15 +49,13 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		return fmt.Errorf("failed to parse message: %v", err)
 	}
 
-	tempDir, err := os.MkdirTemp("", "video_processing")
+	tempDir, err := os.MkdirTemp("", task.UUID)
 	if err != nil {
 		return fmt.Errorf("failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	ext := filepath.Ext(task.VideoPath)
-	inputFile := filepath.Join(tempDir, fmt.Sprintf("%s%s", task.UUID, ext))
-
+	inputFile := filepath.Join(tempDir, task.VideoPath)
 	err = vp.minio.Client.FGetObject(context.Background(), vp.cfg.Bucket, task.VideoPath, inputFile, minio.GetObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to download video from MinIO: %v", err)
@@ -114,9 +72,9 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		"256:144",   // 144p
 	}
 
-	for _, res := range resolutions {
-		if err := vp.convertToHLS(inputFile, task.UUID, res, tempDir); err != nil {
-			return fmt.Errorf("failed to convert to %s: %v", res, err)
+	for _, resolution := range resolutions {
+		if err := vp.convertToHLS(inputFile, task.UUID, resolution, tempDir); err != nil {
+			return fmt.Errorf("failed to convert to %s: %v", resolution, err)
 		}
 	}
 
@@ -124,29 +82,18 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 		return fmt.Errorf("failed to send confirmation: %v", err)
 	}
 
-	if err := vp.minio.Client.RemoveObject(context.Background(), vp.cfg.Bucket, task.VideoPath, minio.RemoveObjectOptions{}); err != nil {
-		return fmt.Errorf("failed to remove video from MinIO: %v", err)
-	}
-
-	if err := os.RemoveAll(tempDir); err != nil {
-		return fmt.Errorf("failed to remove temp directory: %v", err)
-	}
-
 	return nil
 }
 
 func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir string) error {
 	resParts := strings.Split(resolution, ":")
-	resName := resParts[1] + "p"
-	outputDir := filepath.Join(tempDir, resName)
+
+	resName := fmt.Sprintf("%sp-%s", resParts[1], videoUUID)
+	outputDir := filepath.Join(tempDir, "hls")
 
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output dir: %v", err)
 	}
-
-	outputPrefix := fmt.Sprintf("%s-%s", resName, videoUUID)
-	outputM3U8 := filepath.Join(outputDir, fmt.Sprintf("%s.m3u8", outputPrefix))
-	segmentPattern := filepath.Join(outputDir, fmt.Sprintf("%s_%%03d.ts", outputPrefix))
 
 	cmd := exec.Command("ffmpeg",
 		"-i", inputFile,
@@ -157,10 +104,9 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 		"-level", "3.0",
 		"-start_number", "0",
 		"-hls_time", "5",
-		"-hls_segment_filename", segmentPattern,
 		"-hls_list_size", "0",
 		"-f", "hls",
-		outputM3U8,
+		filepath.Join(outputDir, fmt.Sprintf("%s.m3u8", resName)),
 	)
 
 	cmd.Stdout = os.Stdout
@@ -203,7 +149,6 @@ func (vp *VideoProcessor) sendConfirmation(videoUUID string) error {
 	if err != nil {
 		return err
 	}
-	defer ch.Close()
 
 	return ch.PublishWithContext(context.Background(),
 		"",
