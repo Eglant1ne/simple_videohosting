@@ -19,11 +19,6 @@ type Config struct {
 }
 
 func Load() Config {
-	brokers := strings.Split(os.Getenv("KAFKA_BROKERS"), ",")
-	if len(brokers) == 0 {
-		brokers = []string{"localhost:9092"}
-	}
-
 	workers, err := strconv.Atoi(os.Getenv("VIDEO_POSTPROCESS_WORKERS"))
 	if err != nil || workers <= 0 {
 		workers = 5
