@@ -14,15 +14,13 @@ import (
 	"github.com/Eglant1ne/simple_videohosting/services/file_upload_service/internal/service"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const (
 	defaultPartSize = 32 << 20
 )
 
-func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, channel *amqp.Channel, queueName string) http.HandlerFunc {
+func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, rabbitSvc *service.RabbitMQService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		accessToken, err := getCookieHandler(r, "access_token")
 		if err != nil {
@@ -59,14 +57,15 @@ func UploadHandler(minioSvc *service.MinIOService, cfg *config.Config, channel *
 			return
 		}
 
-		if err := sendToRabbitMQ(channel, queueName, &authResp, minioSvc.UnprocessedVideosFolder, fileName); err != nil {
+		videoPath := fmt.Sprintf("%s/%s", minioSvc.UnprocessedVideosFolder, fileName)
+		if err := rabbitSvc.PublishVideoUploadEvent(videoPath); err != nil {
 			log.Printf("Error send message: %v", err)
 			RespondError(w, http.StatusInternalServerError, fmt.Sprintf("Ошибка отправки сообщения: %v", err))
 			return
 		}
 
-		log.Printf("Message sent to RabbitMQ: queue=%s key=%s value=%s\n", queueName, videoID.String(),
-			fmt.Sprintf(`{"user_id": "%v", "video_path": "%s/%s"}`, authResp.User.ID, minioSvc.UnprocessedVideosFolder, fileName))
+		log.Printf("Message sent to RabbitMQ: queue=unprocessed_video_uploaded video_id=%s user_id=%d video_path=%s\n",
+			videoID.String(), authResp.User.ID, videoPath)
 
 		JSONResponse(w, http.StatusOK, "Файл успешно создан")
 	}
@@ -115,28 +114,4 @@ func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io
 	})
 
 	return videoID, fileName, err
-}
-
-func sendToRabbitMQ(ch *amqp.Channel, queueName string, authResp *service.AuthResponse, folderPath, fileName string) error {
-	msg := fmt.Sprintf("{\"user_id\":%v,\"video_path\":\"%s\"}", authResp.User.ID, folderPath+"/"+fileName)
-	return PublishMessage(ch, queueName, msg)
-}
-
-func PublishMessage(ch *amqp.Channel, queueName string, message string) error {
-	err := ch.Publish(
-		"",
-		queueName,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType:  "application/json",
-			Body:         []byte(message),
-			DeliveryMode: amqp.Persistent,
-		},
-	)
-	if err != nil {
-		log.Printf("Message sending error: %v", err)
-		return err
-	}
-	return nil
 }
