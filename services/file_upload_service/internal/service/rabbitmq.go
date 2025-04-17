@@ -25,13 +25,12 @@ func NewRabbitMQService(cfg *config.Config) *RabbitMQService {
 		log.Panicf("Failed to open channel: %v", err)
 	}
 
-	// Объявляем очередь для непроцессированных видео
 	_, err = channel.QueueDeclare(
 		"unprocessed_video_uploaded",
-		true,  // durable
-		false, // autoDelete
-		false, // exclusive
-		false, // noWait
+		true,
+		false,
+		false,
+		false,
 		amqp.Table{"delivery_mode": 2},
 	)
 	if err != nil {
@@ -47,10 +46,10 @@ func NewRabbitMQService(cfg *config.Config) *RabbitMQService {
 
 func (r *RabbitMQService) PublishVideoUploadEvent(videoPath string) error {
 	return r.Channel.Publish(
-		"", // exchange
+		"",
 		"unprocessed_video_uploaded",
-		false, // mandatory
-		false, // immediate
+		false,
+		false,
 		amqp.Publishing{
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
