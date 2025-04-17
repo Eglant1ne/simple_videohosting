@@ -24,7 +24,7 @@ confirm_video_hls_converting_queue = RabbitQueue("confirm_video_hls_converting",
                                                  arguments={"delivery_mode": 2})
 
 
-@router.publisher(convert_video_to_hls_queue)
+@router.publisher(convert_video_to_hls_queue, persist=True)
 @router.subscriber(unprocessed_video_uploaded_queue)
 async def handle_unprocessed_video_uploaded(info: UnprocessedVideoUploaded) -> bytes:
     video_uuid = uuid.uuid4()

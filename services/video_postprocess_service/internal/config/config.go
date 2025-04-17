@@ -14,9 +14,8 @@ type Config struct {
 	AccessKey      string
 	SecretKey      string
 	ConsumeWorkers int
-	KafkaBrokers   []string
-	KafkaTopic     string
-	KafkaGroupID   string
+	RabbitmqUser   string
+	RabbitmqPass   string
 }
 
 func Load() Config {
@@ -25,7 +24,7 @@ func Load() Config {
 		brokers = []string{"localhost:9092"}
 	}
 
-	workers, err := strconv.Atoi(os.Getenv("CONSUME_WORKERS"))
+	workers, err := strconv.Atoi(os.Getenv("VIDEO_POSTPROCESS_WORKERS"))
 	if err != nil || workers <= 0 {
 		workers = 5
 	}
@@ -38,8 +37,7 @@ func Load() Config {
 		AccessKey:      os.Getenv("MINIO_ROOT_USER"),
 		SecretKey:      os.Getenv("MINIO_ROOT_PASSWORD"),
 		ConsumeWorkers: workers,
-		KafkaBrokers:   brokers,
-		KafkaTopic:     os.Getenv("KAFKA_TOPIC"),
-		KafkaGroupID:   os.Getenv("KAFKA_GROUP_ID"),
+		RabbitmqUser:   os.Getenv("RABBITMQ_DEFAULT_USER"),
+		RabbitmqPass:   os.Getenv("RABBITMQ_DEFAULT_PASS"),
 	}
 }
