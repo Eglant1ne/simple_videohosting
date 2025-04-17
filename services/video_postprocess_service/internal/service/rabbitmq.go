@@ -57,7 +57,7 @@ func (vp *VideoProcessor) StartConsumers() {
 	msgs, err := ch.Consume(
 		q.Name,
 		"video_processor",
-		true,
+		false,
 		false,
 		false,
 		false,
@@ -75,6 +75,7 @@ func (vp *VideoProcessor) StartConsumers() {
 
 		if err := json.Unmarshal(msg.Body, &uploadEvent); err != nil {
 			log.Printf("Failed to parse message: %v", err)
+			_ = msg.Nack(false, false)
 			continue
 		}
 
@@ -82,7 +83,11 @@ func (vp *VideoProcessor) StartConsumers() {
 
 		if err := vp.publishConversionTask(uploadEvent.VideoPath, videoUUID); err != nil {
 			log.Printf("Failed to publish conversion task: %v", err)
+			_ = msg.Nack(false, true)
+			continue
 		}
+
+		_ = msg.Ack(false)
 	}
 }
 
@@ -102,6 +107,6 @@ func (vp *VideoProcessor) publishConversionTask(videoPath, videoUUID string) err
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
 			MessageId:    videoUUID,
-			Body:         []byte(fmt.Sprintf(`{"video_path": "%s", "uuid": "%s"}`, videoPath, videoUUID)),
+			Body:         fmt.Appendf(nil, `{"video_path": "%s", "uuid": "%s"}`, videoPath, videoUUID),
 		})
 }
