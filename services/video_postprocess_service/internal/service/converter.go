@@ -145,6 +145,9 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 	}
 
 	outputPrefix := fmt.Sprintf("%s-%s", resName, videoUUID)
+	outputM3U8 := filepath.Join(outputDir, fmt.Sprintf("%s.m3u8", outputPrefix))
+	segmentPattern := filepath.Join(outputDir, fmt.Sprintf("%s_%%03d.ts", outputPrefix))
+
 	cmd := exec.Command("ffmpeg",
 		"-i", inputFile,
 		"-vf", fmt.Sprintf("scale=%s", resolution),
@@ -154,9 +157,10 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 		"-level", "3.0",
 		"-start_number", "0",
 		"-hls_time", "5",
+		"-hls_segment_filename", segmentPattern,
 		"-hls_list_size", "0",
 		"-f", "hls",
-		filepath.Join(outputDir, fmt.Sprintf("%s.m3u8", outputPrefix)),
+		outputM3U8,
 	)
 
 	cmd.Stdout = os.Stdout
