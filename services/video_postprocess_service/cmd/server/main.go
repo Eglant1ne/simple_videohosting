@@ -18,29 +18,6 @@ type VideoEvent struct {
 
 func main() {
 	cfg := config.Load()
-	kafkaConfig := service.KafkaConsumerConfig()
-	//minioSvc := service.NewMinIOService(cfg)
-
-	producer, err := service.NewKafkaProducer([]string{"kafka:9092"})
-	if err != nil {
-		fmt.Println("Error loading kafka")
-	}
-	log.Println("Kafka is loaded ")
-	//kafkaTopic := "confirm_video_hls_converting"
-	defer producer.Close()
-
-	consumer, err := service.NewKafkaConsumer(
-		cfg.KafkaBrokers,
-		"convert_video_to_hls",
-		kafkaConfig,
-		cfg.ConsumeWorkers,
-	)
-	if err != nil {
-		log.Fatalf("Error initialization Consumer: %v", err)
-	}
-	defer consumer.Close()
-
-	r := chi.NewRouter()
 	//healthcheck
 	r.Get("/health", handler.HealthCheckHandler)
 
