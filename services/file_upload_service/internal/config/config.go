@@ -1,8 +1,11 @@
 package config
 
 import (
+	"log"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -14,9 +17,14 @@ type Config struct {
 	Endpoint     string
 	AccessKey    string
 	SecretKey    string
+	MinioTimeout time.Duration
 }
 
 func Load() Config {
+	timeout, err := strconv.Atoi(os.Getenv("MINIO_STALE_UPLOADS_EXPIRY"))
+	if err != nil {
+		log.Fatal("Не удалось инициализировать minio timeout")
+	}
 	return Config{
 		RabbitmqUser: os.Getenv("RABBITMQ_DEFAULT_USER"),
 		RabbitmqPass: os.Getenv("RABBITMQ_DEFAULT_PASS"),
@@ -26,5 +34,6 @@ func Load() Config {
 		Endpoint:     os.Getenv("MINIO_SERVER_URL"),
 		AccessKey:    os.Getenv("MINIO_ROOT_USER"),
 		SecretKey:    os.Getenv("MINIO_ROOT_PASSWORD"),
+		MinioTimeout: time.Duration(timeout),
 	}
 }

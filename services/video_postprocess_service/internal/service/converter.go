@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	appcfg "github.com/Eglant1ne/simple_videohosting/services/video_postprocess_service/internal/config"
 	"github.com/minio/minio-go/v7"
@@ -56,7 +57,9 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 	defer os.RemoveAll(tempDir)
 
 	inputFile := filepath.Join(tempDir, task.VideoPath)
-	err = vp.minio.Client.FGetObject(context.Background(), vp.cfg.Bucket, task.VideoPath, inputFile, minio.GetObjectOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), vp.cfg.MinioTimeout*time.Second)
+	defer cancel()
+	err = vp.minio.Client.FGetObject(ctx, vp.cfg.Bucket, task.VideoPath, inputFile, minio.GetObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to download video from MinIO: %v", err)
 	}
@@ -101,7 +104,8 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 		"-c:v", "libx264",
 		"-preset", "fast",
 		"-profile:v", "baseline",
-		"-level", "error",
+		"-level", "3.0",
+		"-loglevel", "warning",
 		"-start_number", "0",
 		"-hls_time", "5",
 		"-hls_list_size", "0",
@@ -129,7 +133,9 @@ func (vp *VideoProcessor) convertToHLS(inputFile, videoUUID, resolution, tempDir
 		localPath := filepath.Join(outputDir, file.Name())
 		objectPath := fmt.Sprintf("%s/%s/%s", vp.minio.VideoFilesFolder, videoUUID, file.Name())
 
-		_, err = vp.minio.Client.FPutObject(context.Background(),
+		ctx, cancel := context.WithTimeout(context.Background(), vp.cfg.MinioTimeout*time.Second)
+		defer cancel()
+		_, err = vp.minio.Client.FPutObject(ctx,
 			vp.cfg.Bucket,
 			objectPath,
 			localPath,

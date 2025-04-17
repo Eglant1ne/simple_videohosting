@@ -96,7 +96,7 @@ func getFilePart(w http.ResponseWriter, r *http.Request) (*multipart.Part, error
 }
 
 func uploadToMinIO(minioSvc *service.MinIOService, cfg *config.Config, reader io.Reader, part *multipart.Part) (uuid.UUID, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.MinioTimeout*time.Second)
 	defer cancel()
 
 	videoID, err := uuid.NewRandom()

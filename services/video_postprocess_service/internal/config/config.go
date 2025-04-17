@@ -1,9 +1,11 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -16,12 +18,18 @@ type Config struct {
 	ConsumeWorkers int
 	RabbitmqUser   string
 	RabbitmqPass   string
+	MinioTimeout   time.Duration
 }
 
 func Load() Config {
 	workers, err := strconv.Atoi(os.Getenv("VIDEO_POSTPROCESS_WORKERS"))
 	if err != nil || workers <= 0 {
 		workers = 5
+	}
+
+	timeout, err := strconv.Atoi(os.Getenv("MINIO_STALE_UPLOADS_EXPIRY"))
+	if err != nil {
+		log.Fatal("Не удалось инициализировать minio timeout")
 	}
 
 	return Config{
@@ -34,5 +42,6 @@ func Load() Config {
 		ConsumeWorkers: workers,
 		RabbitmqUser:   os.Getenv("RABBITMQ_DEFAULT_USER"),
 		RabbitmqPass:   os.Getenv("RABBITMQ_DEFAULT_PASS"),
+		MinioTimeout:   time.Duration(timeout),
 	}
 }
