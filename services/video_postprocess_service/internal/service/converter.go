@@ -39,7 +39,7 @@ func NewVideoProcessor(cfg *appcfg.Config) (*VideoProcessor, error) {
 }
 
 func (vp *VideoProcessor) StartWorkers() {
-	for i := 0; i < vp.cfg.ConsumeWorkers; i++ {
+	for i := range vp.cfg.ConsumeWorkers {
 		vp.wg.Add(1)
 		go vp.worker(i)
 	}
