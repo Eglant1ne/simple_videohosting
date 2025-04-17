@@ -32,10 +32,10 @@ func (vp *VideoProcessor) StartConsumers() {
 	}
 
 	q, err := ch.QueueDeclare(
-		"",
-		false,
-		false,
+		"convert_video_to_hls",
 		true,
+		false,
+		false,
 		false,
 		nil,
 	)
@@ -56,7 +56,7 @@ func (vp *VideoProcessor) StartConsumers() {
 
 	msgs, err := ch.Consume(
 		q.Name,
-		"",
+		"video_processor",
 		true,
 		false,
 		false,

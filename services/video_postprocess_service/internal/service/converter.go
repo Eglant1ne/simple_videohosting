@@ -95,7 +95,9 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 	}
 	defer os.RemoveAll(tempDir)
 
-	inputFile := filepath.Join(tempDir, "input.mp4")
+	ext := filepath.Ext(task.VideoPath)
+	inputFile := filepath.Join(tempDir, fmt.Sprintf("%s%s", task.UUID, ext))
+
 	err = vp.minio.Client.FGetObject(context.Background(), vp.cfg.Bucket, task.VideoPath, inputFile, minio.GetObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to download video from MinIO: %v", err)
@@ -120,6 +122,14 @@ func (vp *VideoProcessor) processVideo(msg amqp.Delivery) error {
 
 	if err := vp.sendConfirmation(task.UUID); err != nil {
 		return fmt.Errorf("failed to send confirmation: %v", err)
+	}
+
+	if err := vp.minio.Client.RemoveObject(context.Background(), vp.cfg.Bucket, task.VideoPath, minio.RemoveObjectOptions{}); err != nil {
+		return fmt.Errorf("failed to remove video from MinIO: %v", err)
+	}
+
+	if err := os.RemoveAll(tempDir); err != nil {
+		return fmt.Errorf("failed to remove temp directory: %v", err)
 	}
 
 	return nil
