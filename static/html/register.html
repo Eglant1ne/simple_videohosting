@@ -3,22 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация - IfBest</title>
+    <title>Регистрация - HSETube</title>
     <style>
-        body {
-    background-color: #000;
-    color: #fff;
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
+:root {
+    --primary: #ff0000;
+    --primary-dark: #cc0000;
+    --dark: #000;
+    --light: #fff;
+    --gray: #333;
+    --gray-light: #444;
+    --gray-dark: #222;
+    --gray-darker: #1a1a1a;
 }
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--dark);
+    color: var(--light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 20%);
+}
+
+/* Исправленный навбар - компактный как в логине */
 .navbar {
-    background-color: #ff0000;
-    padding: 15px 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 8px 0;
     position: relative;
     z-index: 1000;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    flex: 1;
+}
+
+.logo-link {
+    color: var(--light);
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.logo-link:hover {
+    transform: translateY(-1px);
+    text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn-login {
+    background-color: transparent;
+    color: var(--light);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.btn-login:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-register {
+    background-color: var(--light);
+    color: var(--dark);
+    border: 1.5px solid var(--light);
+}
+
+.btn-register:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+/* Основной контент */
+.main-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    width: 100%;
 }
 
 .container {
@@ -26,161 +153,420 @@
     margin: 0 auto;
     padding: 0 15px;
     display: flex;
-    flex-direction: column; /* Изменено для вертикального выравнивания */
-    align-items: center; /* Центрирование содержимого */
+    flex-direction: column;
+    align-items: center;
 }
 
-.auth-buttons {
+.register-container {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px; /* Добавлено для отступа между кнопками и формой */
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
 }
 
-.btn {
-    padding: 8px 20px;
-    border-radius: 5px;
-    font-weight: bold;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    white-space: nowrap;
+.register-header {
+    text-align: center;
+    margin-bottom: 40px;
 }
 
-.btn-login {
-    background-color: #000;
-    color: #fff;
-    border: 1px solid #fff;
+.register-header h2 {
+    font-size: 36px;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, var(--primary), #ff6666);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    font-weight: 700;
 }
 
-.btn-login:hover {
-    background-color: #333;
+.register-header p {
+    color: #aaa;
+    font-size: 18px;
+    max-width: 400px;
 }
 
-.btn-register {
-    background-color: #fff;
-    color: #000;
-    border: 1px solid #000;
+.register-form {
+    background-color: var(--gray-darker);
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--gray-light);
+    position: relative;
+    overflow: hidden;
 }
 
-.btn-register:hover {
-    background-color: #ddd;
+.register-form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary), #ff6666);
 }
 
-h2 {
-    margin: 20px 0; /* Добавлено для отступа */
-}
-
-form {
-    background-color: #222; /* Фон формы */
-    padding: 20px; /* Отступы внутри формы */
-    border-radius: 5px; /* Закругленные углы */
-    width: 100%; /* Ширина формы */
-    max-width: 400px; /* Максимальная ширина формы */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Тень для формы */
-}
-
-.mb-3 {
-    margin-bottom: 15px; /* Отступ между элементами формы */
+.form-group {
+    margin-bottom: 25px;
+    position: relative;
 }
 
 .form-label {
-    display: block; /* Блоковое отображение для меток */
-    margin-bottom: 5px; /* Отступ снизу */
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #ddd;
+    font-size: 16px;
 }
 
 .form-control {
-    width: 100%; /* Ширина полей ввода */
-    padding: 10px; /* Отступы внутри полей ввода */
-    border: 1px solid #444; /* Граница полей ввода */
-    border-radius: 5px; /* Закругленные углы */
-    background-color: #333; /* Фон полей ввода */
-    color: #fff; /* Цвет текста */
+    width: 100%;
+    padding: 15px;
+    border: 1px solid var(--gray-light);
+    border-radius: 8px;
+    background-color: var(--gray);
+    color: var(--light);
+    font-size: 16px;
+    transition: all 0.3s ease;
 }
 
 .form-control:focus {
-    border-color: #ff0000; /* Цвет границы при фокусе */
-    outline: none; /* Убираем стандартный контур */
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+    background-color: #3a3a3a;
+}
+
+.password-strength {
+    height: 6px;
+    background-color: var(--gray-light);
+    border-radius: 3px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0;
+    transition: width 0.4s ease, background-color 0.4s ease;
+    border-radius: 3px;
+}
+
+.password-weak {
+    background-color: #ff3333;
+}
+
+.password-medium {
+    background-color: #ff9933;
+}
+
+.password-strong {
+    background-color: #33cc33;
+}
+
+.terms {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+.terms input {
+    margin-right: 12px;
+    margin-top: 5px;
+    accent-color: var(--primary);
+}
+
+.terms label {
+    font-size: 14px;
+    color: #aaa;
+    line-height: 1.5;
+}
+
+.terms a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.terms a:hover {
+    color: #ff6666;
+    text-decoration: underline;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--light);
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    margin-top: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.btn-submit:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.4);
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 25px;
+    color: #aaa;
+    font-size: 16px;
+}
+
+.login-link a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.login-link a:hover {
+    color: #ff6666;
+    text-decoration: underline;
+}
+
+.error-message {
+    color: #ff3333;
+    font-size: 14px;
+    margin-top: 8px;
+    display: none;
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.register-form {
+    animation: fadeIn 0.6s ease-out;
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
+    .nav-container {
+        padding: 0 15px;
+    }
+    
+    .logo-link {
+        font-size: 20px;
+    }
+    
+    .btn {
+        padding: 7px 16px;
+        font-size: 13px;
+    }
+    
+    .auth-buttons {
+        gap: 8px;
+    }
+    
+    .register-form {
+        padding: 30px;
+    }
+    
+    .register-header h2 {
+        font-size: 32px;
+    }
+    
+    .register-header p {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 6px 0;
+    }
+    
+    .logo-link {
+        font-size: 18px;
+    }
+    
     .btn {
         padding: 6px 12px;
-        font-size: 14px;
+        font-size: 12px;
     }
-}
-
-@media (max-width: 576px) {
+    
     .auth-buttons {
-        width: 100%;
-        justify-content: center;
-        margin-top: 10px;
+        gap: 6px;
+    }
+    
+    .register-form {
+        padding: 20px;
+    }
+    
+    .register-header h2 {
+        font-size: 28px;
     }
 }
-
     </style>
 </head>
+
 <body>
     <nav class="navbar">
-        <div class="container">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" class="logo-link">HSETube</a>
+            </div>
             <div class="auth-buttons">
-                <a href="login.html" class="btn btn-login">Вход</a>
-                <a href="register.html" class="btn btn-register">Регистрация</a>
+                <a href="/login" class="btn btn-login">Вход</a>
+                <a href="/register" class="btn btn-register">Регистрация</a>
             </div>
         </div>
     </nav>
 
-    <div class="container">
-        <h2>Регистрация</h2>
-        <form id="registrationForm">
-            <div class="mb-3">
-                <label for="username" class="form-label">Имя пользователя</label>
-                <input type="text" class="form-control" id="username" name="username" required>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="register-container">
+                <div class="register-header">
+                    <h2>Создать аккаунт</h2>
+                    <p>Присоединяйтесь к сообществу HSETube и откройте для себя мир возможностей</p>
+                </div>
+                <form id="registerForm" class="register-form">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="error-message" id="username-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="error-message" id="email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="password-strength">
+                            <div class="password-strength-bar" id="password-strength-bar"></div>
+                        </div>
+                        <div class="error-message" id="password-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Подтвердите пароль</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        <div class="error-message" id="confirmPassword-error"></div>
+                    </div>
+                    <div class="terms">
+                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                        <label for="agreeTerms">Я согласен с <a href="/terms">условиями использования</a> и <a href="/privacy">политикой конфиденциальности</a></label>
+                    </div>
+                    <button type="submit" class="btn btn-submit">Зарегистрироваться</button>
+                    <div class="login-link">
+                        Уже есть аккаунт? <a href="/login">Войти</a>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Пароль</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-register">Зарегистрироваться</button>
-        </form>
+        </div>
     </div>
 
     <script>
-        document.getElementById('registrationForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Отменяем стандартное поведение формы
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            resetErrors();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            let isValid = true;
+            
+            if (username.length < 3) {
+                showError('username-error', 'Имя пользователя должно содержать не менее 3 символов');
+                isValid = false;
+            }
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('email-error', 'Введите корректный email');
+                isValid = false;
+            }
+            
+            if (password.length < 6) {
+                showError('password-error', 'Пароль должен содержать не менее 6 символов');
+                isValid = false;
+            }
+            
+            if (password !== confirmPassword) {
+                showError('confirmPassword-error', 'Пароли не совпадают');
+                isValid = false;
+            }
+            
+            if (!agreeTerms) {
+                alert('Необходимо согласиться с условиями использования');
+                isValid = false;
+            }
+            
+            if (isValid) {
+                const formData = {
+                    username: username,
+                    email: email,
+                    password: password
+                };
 
-            // Создаем объект с данными формы
-            const formData = {
-                email: document.getElementById('email').value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value
-            };
-
-            // Отправляем данные в формате JSON
-            fetch('/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json' // Указываем, что отправляем JSON
-                },
-                body: JSON.stringify(formData) // Преобразуем объект в JSON
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Если регистрация успешна, перенаправляем пользователя на страницу входа
-                    window.location.href = '/login/';
-                } else {
-                    // Обработка ошибок
-                    return response.json().then(data => {
-                        alert(data.message || 'Регистрация не удалась');
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
+                fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/upload_video';
+                    } else {
+                        return response.json().then(data => {
+                            alert(data.message || 'Регистрация не удалась');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            }
+        });
+        
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        function resetErrors() {
+            const errorElements = document.querySelectorAll('.error-message');
+            errorElements.forEach(element => {
+                element.style.display = 'none';
             });
+        }
+        
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('password-strength-bar');
+            
+            strengthBar.className = 'password-strength-bar';
+            
+            if (password.length === 0) {
+                strengthBar.style.width = '0';
+            } else if (password.length < 6) {
+                strengthBar.style.width = '30%';
+                strengthBar.classList.add('password-weak');
+            } else if (password.length < 8) {
+                strengthBar.style.width = '60%';
+                strengthBar.classList.add('password-medium');
+            } else {
+                strengthBar.style.width = '100%';
+                strengthBar.classList.add('password-strong');
+            }
         });
     </script>
 </body>

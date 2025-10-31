@@ -3,181 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход - IfBest</title>
+    <title>Вход - HSETube</title>
     <style>
+        :root {
+            --primary: #ff0000;
+            --primary-dark: #cc0000;
+            --dark: #000;
+            --light: #fff;
+            --gray: #333;
+            --gray-light: #444;
+            --gray-dark: #222;
+            --gray-darker: #1a1a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-    background-color: #000;
-    color: #fff;
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 20%);
+        }
 
-.navbar {
-    background-color: #ff0000;
-    padding: 15px 0;
-    position: relative;
-    z-index: 1000;
-}
+        /* Navbar Styles */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 8px 0;
+            position: relative;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-    display: flex;
-    flex-direction: column; /* Изменено для вертикального выравнивания */
-    align-items: center; /* Центрирование содержимого */
-}
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.auth-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px; /* Добавлено для отступа между кнопками и формой */
-}
+        .nav-logo {
+            flex: 1;
+        }
 
-.btn {
-    padding: 8px 20px;
-    border-radius: 5px;
-    font-weight: bold;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
+        .logo-link {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
 
-.btn-login {
-    background-color: #000;
-    color: #fff;
-    border: 1px solid #fff;
-}
+        .logo-link:hover {
+            transform: translateY(-1px);
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+        }
 
-.btn-login:hover {
-    background-color: #333;
-}
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
 
-.btn-register {
-    background-color: #fff;
-    color: #000;
-    border: 1px solid #000;
-}
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-.btn-register:hover {
-    background-color: #ddd;
-}
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
 
-h2 {
-    margin: 20px 0; /* Добавлено для отступа */
-}
+        .btn:hover::before {
+            left: 100%;
+        }
 
-form {
-    background-color: #222; /* Фон формы */
-    padding: 20px; /* Отступы внутри формы */
-    border-radius: 5px; /* Закругленные углы */
-    width: 100%; /* Ширина формы */
-    max-width: 400px; /* Максимальная ширина формы */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Тень для формы */
-}
+        .btn-login {
+            background-color: transparent;
+            color: var(--light);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
 
-.mb-3 {
-    margin-bottom: 15px; /* Отступ между элементами формы */
-}
+        .btn-login:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
 
-.form-label {
-    display: block; /* Блоковое отображение для меток */
-    margin-bottom: 5px; /* Отступ снизу */
-}
+        .btn-register {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1.5px solid var(--light);
+        }
 
-.form-control {
-    width: 100%; /* Ширина полей ввода */
-    padding: 10px; /* Отступы внутри полей ввода */
-    border: 1px solid #444; /* Граница полей ввода */
-    border-radius: 5px; /* Закругленные углы */
-    background-color: #333; /* Фон полей ввода */
-    color: #fff; /* Цвет текста */
-}
+        .btn-register:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        }
 
-.form-control:focus {
-    border-color: #ff0000; /* Цвет границы при фокусе */
-    outline: none; /* Убираем стандартный контур */
-}
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            width: 100%;
+        }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-    .btn {
-        padding: 6px 12px;
-        font-size: 14px;
-    }
-}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-@media (max-width: 576px) {
-    .auth-buttons {
-        width: 100%;
-        justify-content: center;
-        margin-top: 10px;
-    }
-}
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 450px;
+        }
 
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: #aaa;
+            font-size: 18px;
+            max-width: 400px;
+        }
+
+        .login-form {
+            background-color: var(--gray-darker);
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--gray-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #ddd;
+            font-size: 16px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            background-color: var(--gray);
+            color: var(--light);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+            background-color: #3a3a3a;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .remember-me input {
+            accent-color: var(--primary);
+        }
+
+        .forgot-password {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: #ff6666;
+            text-decoration: underline;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light);
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.4);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #aaa;
+            font-size: 16px;
+        }
+
+        .register-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .register-link a:hover {
+            color: #ff6666;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #ff3333;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+            font-weight: 500;
+        }
+
+        /* Анимации */
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .login-form {
+            animation: slideIn 0.6s ease-out;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+            }
+            
+            .logo-link {
+                font-size: 20px;
+            }
+            
+            .btn {
+                padding: 7px 16px;
+                font-size: 13px;
+            }
+            
+            .auth-buttons {
+                gap: 8px;
+            }
+            
+            .login-form {
+                padding: 30px;
+            }
+            
+            .login-header h2 {
+                font-size: 32px;
+            }
+            
+            .login-header p {
+                font-size: 16px;
+            }
+            
+            .form-options {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 6px 0;
+            }
+            
+            .logo-link {
+                font-size: 18px;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .auth-buttons {
+                gap: 6px;
+            }
+            
+            .login-form {
+                padding: 20px;
+            }
+            
+            .login-header h2 {
+                font-size: 28px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="container">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" class="logo-link">HSETube</a>
+            </div>
             <div class="auth-buttons">
-                <a href="login.html" class="btn btn-login">Вход</a>
-                <a href="register.html" class="btn btn-register">Регистрация</a>
+                <a href="/login" class="btn btn-login">Вход</a>
+                <a href="/register" class="btn btn-register">Регистрация</a>
             </div>
         </div>
     </nav>
 
-    <div class="container">
-        <h2>Вход</h2>
-        <form id="loginForm">
-            <div class="mb-3">
-                <label for="login" class="form-label">Email или Логин</label>
-                <input type="text" class="form-control" id="login" name="login" required>
+    <div class="main-content">
+        <div class="container">
+            <div class="login-container">
+                <div class="login-header">
+                    <h2>Вход в аккаунт</h2>
+                    <p>Войдите в свой аккаунт чтобы продолжить</p>
+                </div>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="login" class="form-label">Email или Логин</label>
+                        <input type="text" class="form-control" id="login" name="login" required>
+                        <div class="error-message" id="login-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="error-message" id="password-error"></div>
+                    </div>
+                    <div class="form-options">
+                        <label class="remember-me">
+                            <input type="checkbox" id="remember" name="remember">
+                            <span>Запомнить меня</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-submit">Войти</button>
+                    <div class="register-link">
+                        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Пароль</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-login">Войти</button>
-        </form>
+        </div>
     </div>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Отменяем стандартное поведение формы
+            
+            // Сброс сообщений об ошибках
+            resetErrors();
+            
+            // Получение значений полей
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            
+            let isValid = true;
+            
+            // Валидация логина/email
+            if (login.trim() === '') {
+                showError('login-error', 'Введите email или логин');
+                isValid = false;
+            }
+            
+            // Валидация пароля
+            if (password.length < 6) {
+                showError('password-error', 'Пароль должен содержать не менее 6 символов');
+                isValid = false;
+            }
+            
+            if (isValid) {
+                // Создаем объект с данными формы
+                const formData = {
+                    login: login,
+                    password: password
+                };
 
-            // Создаем объект с данными формы
-            const formData = {
-                login: document.getElementById('login').value,
-                password: document.getElementById('password').value
-            };
+                // Показываем индикатор загрузки
+                const submitBtn = document.querySelector('.btn-submit');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Вход...';
+                submitBtn.disabled = true;
 
-            // Отправляем данные в формате JSON
-            fetch('/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json' // Указываем, что отправляем JSON
-                },
-                body: JSON.stringify(formData) // Преобразуем объект в JSON
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Если вход успешен, перенаправляем пользователя на главную страницу или другую
-                    window.location.href = '/upload_video'; // Замените на нужный URL
-                } else {
-                    // Обработка ошибок
-                    return response.json().then(data => {
-                        alert(data.message || 'Вход не удался');
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-            });
+                // Отправляем данные в формате JSON
+                fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Если вход успешен, перенаправляем пользователя
+                        window.location.href = '/upload_video';
+                    } else {
+                        // Обработка ошибок
+                        return response.json().then(data => {
+                            showError('login-error', data.message || 'Вход не удался');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    showError('login-error', 'Ошибка сети. Попробуйте еще раз.');
+                })
+                .finally(() => {
+                    // Восстанавливаем кнопку
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
+            }
         });
+
+        // Функция показа ошибки
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // Функция сброса ошибок
+        function resetErrors() {
+            const errorElements = document.querySelectorAll('.error-message');
+            errorElements.forEach(element => {
+                element.style.display = 'none';
+            });
+        }
     </script>
 </body>
 </html>
