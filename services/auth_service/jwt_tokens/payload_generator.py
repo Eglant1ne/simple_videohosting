@@ -15,6 +15,19 @@ def create_access_token_payload(user: User) -> dict:
     :return: Словарь с claims access токена
     :rtype: dict
 
+    :Example:
+
+    .. code-block:: python
+
+        user = User(id=123, token_version=1)
+        payload = create_access_token_payload(user)
+        # payload = {
+        #     "sub": "123",
+        #     "jti": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+        #     "version": "1",
+        #     "token_type": "access"
+        # }
+
     :Note:
         - ``sub`` (subject) - идентификатор пользователя
         - ``jti`` (JWT ID) - уникальный идентификатор токена
@@ -41,6 +54,19 @@ def create_refresh_token_payload(user: User) -> dict:
     :type user: User
     :return: Словарь с claims refresh токена
     :rtype: dict
+
+    :Example:
+
+    .. code-block:: python
+
+        user = User(id=123, token_version=1)
+        payload = create_refresh_token_payload(user)
+        # payload = {
+        #     "sub": "123",
+        #     "jti": "f1e2d3c4-b5a6-7890-1234-567890abcdef",
+        #     "version": "1",
+        #     "token_type": "refresh"
+        # }
 
     :Note:
         - ``sub`` (subject) - идентификатор пользователя

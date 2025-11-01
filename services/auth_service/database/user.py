@@ -28,6 +28,24 @@ class User(_Base):
     :vartype avatar_path: String
     :ivar token_version: Версия токена для инвалидации JWT токенов
     :vartype token_version: BigInteger
+
+    :Example:
+
+    .. code-block:: python
+
+        # Создание нового пользователя
+        user = User(
+            username="john_doe",
+            email="john@example.com",
+            password_hash="hashed_password_here"
+        )
+
+    :Note:
+        - Поле ``created_at`` автоматически устанавливается в текущее время при создании записи
+        - Поле ``token_version`` используется для принудительной инвалидации всех токенов пользователя
+          при смене пароля или выходе из всех устройств
+        - Ограничение длины username - 32 символа, email - 254 символа (стандарт RFC)
+        - Все строковые поля имеют явное указание name для соответствия naming convention
     """
     __tablename__ = 'users'
 
