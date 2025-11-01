@@ -23,6 +23,26 @@ from .utils import verify_password, get_user_by_email, get_user_by_username, get
 
 
 async def authorization_by_login(user_login: UserLogin, session: AsyncSession) -> User:
+    """
+    Аутентифицирует пользователя по логину и паролю.
+    
+    Определяет тип логина (email или username) по наличию символа '@' 
+    и проверяет соответствие пароля.
+    
+    :param user_login: Данные для входа пользователя
+    :type user_login: UserLogin
+    :param session: Асинхронная сессия базы данных
+    :type session: AsyncSession
+    :return: Аутентифицированный пользователь или None если аутентификация не удалась
+    :rtype: User or None
+    
+    :Example:
+    
+    .. code-block:: python
+    
+        user_login = UserLogin(login="user@example.com", password="password")
+        user = await authorization_by_login(user_login, session)
+    """
     if "@" in user_login.login:
         user: User = await get_user_by_email(user_login.login, session)
     else:
@@ -36,6 +56,36 @@ async def authorization_by_login(user_login: UserLogin, session: AsyncSession) -
 
 @router.post("/login/")
 async def authorization_user(user_login: UserLogin) -> ORJSONResponse:
+    """
+    Эндпоинт для авторизации пользователя в системе.
+    
+    Принимает логин и пароль, проверяет их корректность и в случае успешной
+    аутентификации устанавливает access и refresh токены в HTTP-only cookies.
+    
+    :param user_login: Данные для входа пользователя
+    :type user_login: UserLogin
+    :return: JSON ответ с результатом операции
+    :rtype: ORJSONResponse
+    
+    :status 200: Успешная авторизация
+    :status 401: Неверная почта/имя пользователя или пароль
+    :status 500: Внутренняя ошибка сервера
+    
+    :Example:
+    
+    .. code-block:: json
+    
+        Request:
+        {
+            "login": "user@example.com",
+            "password": "password123"
+        }
+        
+        Response:
+        {
+            "msg": "Успешная авторизация."
+        }
+    """
     async with async_session() as session:
         try:
             authenticated_user = await authorization_by_login(
@@ -76,6 +126,42 @@ _INVALID_TOKEN_MESSAGE = 'Не удалось авторизоваться по 
 
 @router.post('/token/')
 async def get_user_by_token(access_token: TokenBody) -> ORJSONResponse:
+    """
+    Эндпоинт для получения информации о пользователе по access токену.
+    
+    Валидирует access токен, извлекает payload и возвращает данные пользователя.
+    Токен передается в теле запроса.
+    
+    :param access_token: Access токен в теле запроса
+    :type access_token: TokenBody
+    :return: JSON ответ с данными пользователя или ошибкой
+    :rtype: ORJSONResponse
+    
+    :status 200: Успешная авторизация, возвращены данные пользователя
+    :status 401: Невалидный токен или пользователь не найден
+    :status 500: Внутренняя ошибка сервера
+    
+    :Example:
+    
+    .. code-block:: json
+    
+        Request:
+        {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+        
+        Response:
+        {
+            "msg": "Успешная авторизация",
+            "user": {
+                "id": 1,
+                "username": "john_doe",
+                "email": "john@example.com",
+                "created_at": "2023-01-01T00:00:00",
+                "avatar_path": "/avatars/1.jpg"
+            }
+        }
+    """
     try:
         payload: dict = decode_token_payload(access_token.token)
         if payload is None or not token_payload_is_access(payload):
@@ -104,6 +190,24 @@ async def get_user_by_token(access_token: TokenBody) -> ORJSONResponse:
 
 @router.post('/logout/')
 async def logout(access_token: str = Cookie(None), refresh_token: str = Cookie(None)):
+    """
+    Эндпоинт для выхода пользователя из системы.
+    
+    Добавляет текущие access и refresh токены в черный список Redis
+    и удаляет их из cookies клиента.
+    
+    :param access_token: Access токен из HTTP-only cookie (опционально)
+    :type access_token: str
+    :param refresh_token: Refresh токен из HTTP-only cookie (опционально)
+    :type refresh_token: str
+    :return: JSON ответ с результатом выхода
+    :rtype: ORJSONResponse
+    
+    :status 200: Успешный выход из системы
+    
+    :Note:
+        Токены извлекаются из cookies автоматически FastAPI с помощью декоратора Cookie
+    """
     access_token_payload = decode_token_payload(access_token)
     refresh_token_payload = decode_token_payload(refresh_token)
 
@@ -123,6 +227,37 @@ async def logout(access_token: str = Cookie(None), refresh_token: str = Cookie(N
 
 @router.post('/refresh/')
 async def refresh_access_token(refresh_token: str = Cookie(None)) -> ORJSONResponse:
+    """
+    Эндпоинт для обновления access токена с помощью refresh токена.
+    
+    Валидирует refresh токен, генерирует новую пару токенов (access и refresh),
+    добавляет старый refresh токен в черный список и устанавливает новые токены в cookies.
+    
+    :param refresh_token: Refresh токен из HTTP-only cookie (опционально)
+    :type refresh_token: str
+    :return: JSON ответ с результатом обновления токенов
+    :rtype: ORJSONResponse
+    
+    :status 200: Токены успешно обновлены
+    :status 401: Невалидный refresh токен или пользователь не найден
+    
+    :Raises:
+        ValueError: Если токен невалиден или пользователь не найден
+    
+    :Example:
+    
+    .. code-block:: json
+    
+        Response (успех):
+        {
+            "msg": "Сгенерированы новые токены"
+        }
+        
+        Response (ошибка):
+        {
+            "msg": "Не удалось авторизоваться по предоставленным данным: ..."
+        }
+    """
     try:
         old_token_payload: dict = decode_token_payload(refresh_token)
         if old_token_payload is None:
@@ -161,6 +296,36 @@ async def refresh_access_token(refresh_token: str = Cookie(None)) -> ORJSONRespo
 
 @router.get('/me/')
 async def user_get_self(access_token: str = Cookie(None)):
+    """
+    Эндпоинт для получения информации о текущем авторизованном пользователе.
+    
+    Извлекает access токен из cookie, валидирует его и возвращает данные
+    пользователя, ассоциированного с этим токеном.
+    
+    :param access_token: Access токен из HTTP-only cookie (опционально)
+    :type access_token: str
+    :return: JSON ответ с данными пользователя или ошибкой
+    :rtype: ORJSONResponse
+    
+    :status 200: Успешно возвращены данные пользователя
+    :status 401: Пользователь не авторизован или токен невалиден
+    
+    :Example:
+    
+    .. code-block:: json
+    
+        Response:
+        {
+            "msg": "Ваши данные",
+            "user": {
+                "id": 1,
+                "username": "john_doe",
+                "email": "john@example.com",
+                "created_at": "2023-01-01T00:00:00",
+                "avatar": "/avatars/1.jpg"
+            }
+        }
+    """
     try:
         if access_token is None:
             raise ValueError('Вы не авторизованы')
