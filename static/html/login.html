@@ -461,13 +461,7 @@
                 showError('login-error', 'Введите email или логин');
                 isValid = false;
             }
-            
-            // Валидация пароля
-            if (password.length < 6) {
-                showError('password-error', 'Пароль должен содержать не менее 6 символов');
-                isValid = false;
-            }
-            
+
             if (isValid) {
                 // Создаем объект с данными формы
                 const formData = {
