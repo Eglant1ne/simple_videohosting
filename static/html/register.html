@@ -523,7 +523,7 @@ body {
                 })
                 .then(response => {
                     if (response.ok) {
-                        window.location.href = '/upload_video';
+                        window.location.href = '/auth/me';
                     } else {
                         return response.json().then(data => {
                             alert(data.message || 'Регистрация не удалась');
