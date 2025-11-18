@@ -10,3 +10,5 @@ orjson==3.10.16
 pyjwt[crypto]==2.10.1
 passlib==1.7.4
 bcrypt==4.0.1
+httpx==0.28.1
+python-dotenv==1.2.1
