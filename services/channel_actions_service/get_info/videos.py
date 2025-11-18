@@ -10,7 +10,7 @@ from database.video_info import VideoInfo
 from database.session import async_session
 
 
-@router.get('videos/author/{author_id}')
+@router.get('/videos/author/{author_id}')
 async def get_author_videos(author_id: int, offset: conint(ge=0) = 0,
                             count: conint(ge=1, le=20) = 20) -> ORJSONResponse:
     async with async_session() as session:
@@ -20,10 +20,10 @@ async def get_author_videos(author_id: int, offset: conint(ge=0) = 0,
         )
         result = result.scalars().all()
         return ORJSONResponse({'msg': 'Видео успешно выбраны',
-                               'videos': result})
+                               'videos': [video.to_dict() for video in result]})
 
 
-@router.get('videos/batch')
+@router.get('/videos/batch')
 async def get_author_videos(offset: conint(ge=0) = 0, count: conint(ge=1, le=20) = 20) -> ORJSONResponse:
     async with async_session() as session:
         result = await session.execute(

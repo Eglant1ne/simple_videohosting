@@ -486,7 +486,7 @@
                 .then(response => {
                     if (response.ok) {
                         // Если вход успешен, перенаправляем пользователя
-                        window.location.href = '/auth/me';
+                        window.location.href = '/profile';
                     } else {
                         // Обработка ошибок
                         return response.json().then(data => {
