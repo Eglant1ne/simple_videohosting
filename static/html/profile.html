@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль пользователя - HSETube</title>
     <style>
-        /* Все стили из предыдущего примера */
         :root {
             --primary: #ff0000;
             --primary-dark: #cc0000;
@@ -140,9 +139,6 @@
 
         .main-content {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 40px 0;
             width: 100%;
         }
@@ -151,17 +147,25 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        }
+
+        .profile-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        @media (max-width: 968px) {
+            .profile-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
         }
 
         .profile-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
         }
 
         .profile-header {
@@ -189,7 +193,6 @@
             background-color: var(--gray-darker);
             padding: 40px;
             border-radius: 12px;
-            width: 100%;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--gray-light);
             position: relative;
@@ -227,9 +230,6 @@
         }
 
         .profile-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
             margin-bottom: 30px;
         }
 
@@ -256,7 +256,7 @@
 
         .profile-actions {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             gap: 15px;
             margin-top: 30px;
         }
@@ -299,6 +299,295 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
+        /* Videos Section */
+        .videos-section {
+            background-color: var(--gray-darker);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--gray-light);
+            position: relative;
+        }
+
+        .videos-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+        }
+
+        .videos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .videos-header h3 {
+            font-size: 24px;
+            color: var(--light);
+        }
+
+        .videos-count {
+            color: #aaa;
+            font-size: 16px;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background-color: var(--gray-dark);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-light);
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--gray), var(--gray-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            position: relative;
+            overflow: hidden;
+            font-size: 48px;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--light);
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-stats {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .video-date {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-watch {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-watch:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+        }
+
+        .btn-watch:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .no-videos {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+
+        .no-videos h4 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* Модальное окно для видео */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .video-modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 900px;
+            background: var(--gray-darker);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--gray-light);
+        }
+
+        .video-modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .video-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .video-modal-title {
+            color: var(--light);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--dark);
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video-player {
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+            border-radius: 8px;
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--gray-dark);
+            border-radius: 8px;
+        }
+
+        .quality-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: var(--gray);
+            color: white;
+            border: 1px solid var(--gray-light);
+            font-size: 14px;
+        }
+
+        .quality-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .load-video-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .load-video-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+        }
+
+        .video-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--gray-dark);
+            border-radius: 8px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .video-info div {
+            margin-bottom: 5px;
+        }
+
+        /* Loading states */
         .loading {
             display: flex;
             flex-direction: column;
@@ -340,6 +629,7 @@
             color: #aaa;
         }
 
+        /* Animations */
         @keyframes slideIn {
             from { 
                 opacity: 0; 
@@ -356,10 +646,26 @@
             100% { transform: rotate(360deg); }
         }
 
-        .profile-card {
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .profile-card, .videos-section {
             animation: slideIn 0.6s ease-out;
         }
 
+        .video-modal[style*="display: flex"] .video-modal-content {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
             .nav-container {
                 padding: 0 15px;
@@ -378,7 +684,7 @@
                 gap: 8px;
             }
             
-            .profile-card {
+            .profile-card, .videos-section {
                 padding: 30px;
             }
             
@@ -390,9 +696,17 @@
                 font-size: 16px;
             }
             
-            .profile-actions {
+            .videos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .video-modal-content {
+                padding: 15px;
+            }
+            
+            .video-controls {
                 flex-direction: column;
-                gap: 10px;
+                align-items: stretch;
             }
         }
 
@@ -414,7 +728,7 @@
                 gap: 6px;
             }
             
-            .profile-card {
+            .profile-card, .videos-section {
                 padding: 20px;
             }
             
@@ -427,8 +741,18 @@
                 height: 120px;
                 font-size: 36px;
             }
+            
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-player-container {
+                min-height: 300px;
+            }
         }
     </style>
+    <!-- HLS.js для воспроизведения видео -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 
 <body>
@@ -446,55 +770,117 @@
 
     <div class="main-content">
         <div class="container">
-            <div class="profile-container">
-                <div class="profile-header">
-                    <h2>Ваш профиль</h2>
-                    <p>Управление вашей учетной записью HSETube</p>
-                </div>
-                
-                <div id="loading" class="loading">
-                    <div class="spinner"></div>
-                    <div class="loading-text">Загрузка данных профиля...</div>
-                </div>
-                
-                <div id="error-message" class="error-message" style="display: none;">
-                    <h3>Ошибка загрузки</h3>
-                    <p id="error-text">Не удалось загрузить данные профиля</p>
-                    <button id="retry-btn" class="btn btn-edit" style="margin-top: 15px;">Попробовать снова</button>
-                </div>
-                
-                <div id="profile-card" class="profile-card" style="display: none;">
-                    <div class="profile-avatar">
-                        <div id="avatar" class="avatar-placeholder"></div>
+            <div class="profile-header">
+                <h2>Ваш профиль</h2>
+                <p>Управление вашей учетной записью HSETube</p>
+            </div>
+            
+            <div class="profile-layout">
+                <!-- Левая колонка - информация профиля -->
+                <div class="profile-container">
+                    <div id="loading-profile" class="loading">
+                        <div class="spinner"></div>
+                        <div class="loading-text">Загрузка данных профиля...</div>
                     </div>
-                    <div class="profile-info">
-                        <div class="info-group">
-                            <span class="info-label">ID пользователя</span>
-                            <div id="user-id" class="info-value">-</div>
+                    
+                    <div id="error-profile" class="error-message" style="display: none;">
+                        <h3>Ошибка загрузки</h3>
+                        <p id="error-profile-text">Не удалось загрузить данные профиля</p>
+                        <button id="retry-profile-btn" class="btn btn-edit" style="margin-top: 15px;">Попробовать снова</button>
+                    </div>
+                    
+                    <div id="profile-card" class="profile-card" style="display: none;">
+                        <div class="profile-avatar">
+                            <div id="avatar" class="avatar-placeholder"></div>
                         </div>
-                        <div class="info-group">
-                            <span class="info-label">Имя пользователя</span>
-                            <div id="username" class="info-value">-</div>
+                        <div class="profile-info">
+                            <div class="info-group">
+                                <span class="info-label">ID пользователя</span>
+                                <div id="user-id" class="info-value">-</div>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Имя пользователя</span>
+                                <div id="username" class="info-value">-</div>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Email</span>
+                                <div id="email" class="info-value">-</div>
+                            </div>
+                            <div class="info-group">
+                                <span class="info-label">Дата регистрации</span>
+                                <div id="created-at" class="info-value">-</div>
+                            </div>
                         </div>
-                        <div class="info-group">
-                            <span class="info-label">Email</span>
-                            <div id="email" class="info-value">-</div>
-                        </div>
-                        <div class="info-group">
-                            <span class="info-label">Дата регистрации</span>
-                            <div id="created-at" class="info-value">-</div>
+                        <div class="profile-actions">
+                            <button class="btn btn-profile btn-edit">Редактировать профиль</button>
+                            <button class="btn btn-profile btn-logout">Выйти из аккаунта</button>
                         </div>
                     </div>
-                    <div class="profile-actions">
-                        <button class="btn btn-profile btn-edit">Редактировать профиль</button>
-                        <button class="btn btn-profile btn-logout">Выйти из аккаунта</button>
+                </div>
+
+                <!-- Правая колонка - видео пользователя -->
+                <div class="videos-container">
+                    <div id="loading-videos" class="loading">
+                        <div class="spinner"></div>
+                        <div class="loading-text">Загрузка видео...</div>
+                    </div>
+                    
+                    <div id="error-videos" class="error-message" style="display: none;">
+                        <h3>Ошибка загрузки видео</h3>
+                        <p id="error-videos-text">Не удалось загрузить список видео</p>
+                        <button id="retry-videos-btn" class="btn btn-edit" style="margin-top: 15px;">Попробовать снова</button>
+                    </div>
+                    
+                    <div id="videos-section" class="videos-section" style="display: none;">
+                        <div class="videos-header">
+                            <h3>Мои видео</h3>
+                            <div id="videos-count" class="videos-count">0 видео</div>
+                        </div>
+                        <div id="videos-grid" class="videos-grid">
+                            <!-- Видео будут добавляться здесь -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Модальное окно для просмотра видео -->
+    <div id="video-modal" class="video-modal">
+        <div class="video-modal-content">
+            <div class="video-modal-header">
+                <div class="video-modal-title" id="video-modal-title">Просмотр видео</div>
+                <button id="close-modal" class="close-modal">✕</button>
+            </div>
+            
+            <div class="video-player-container">
+                <div id="video-player">
+                    <!-- Видео будет загружено сюда -->
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <select id="quality-select" class="quality-select">
+                    <option value="360">360p</option>
+                    <option value="480">480p</option>
+                    <option value="720" selected>720p</option>
+                    <option value="1080">1080p</option>
+                </select>
+                <button id="load-video-btn" class="load-video-btn">Применить качество</button>
+            </div>
+            
+            <div class="video-info">
+                <div>ID видео: <span id="video-uuid">-</span></div>
+                <div>Статус: <span id="video-status">-</span></div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let currentUserId = null;
+        let currentVideoId = null;
+        let currentHls = null;
+
         // Функция для форматирования даты
         function formatDate(dateString) {
             try {
@@ -512,26 +898,42 @@
             }
         }
 
+        // Функция для форматирования относительной даты
+        function formatRelativeDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Сегодня';
+                if (diffDays === 1) return 'Вчера';
+                if (diffDays < 7) return `${diffDays} дней назад`;
+                if (diffDays < 30) return `${Math.floor(diffDays / 7)} недель назад`;
+                return formatDate(dateString);
+            } catch (e) {
+                return dateString;
+            }
+        }
+
         // Функция для загрузки данных профиля
         async function loadProfileData() {
-            const loadingElement = document.getElementById('loading');
-            const errorElement = document.getElementById('error-message');
+            const loadingElement = document.getElementById('loading-profile');
+            const errorElement = document.getElementById('error-profile');
             const profileCard = document.getElementById('profile-card');
             
-            // Показываем индикатор загрузки
             loadingElement.style.display = 'flex';
             errorElement.style.display = 'none';
             profileCard.style.display = 'none';
             
             try {
-                // Отправляем запрос к API
                 const response = await fetch('/auth/me', {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    credentials: 'include' // Важно для передачи cookies
+                    credentials: 'include'
                 });
                 
                 if (!response.ok) {
@@ -540,10 +942,12 @@
                 
                 const data = await response.json();
                 
-                // Проверяем структуру ответа
                 if (!data.user) {
                     throw new Error('Некорректный формат данных');
                 }
+                
+                // Сохраняем ID пользователя для загрузки видео
+                currentUserId = data.user.id;
                 
                 // Обновляем данные на странице
                 document.getElementById('user-id').textContent = data.user.id || '-';
@@ -560,22 +964,257 @@
                     avatarElement.innerHTML = `<span>${initial}</span>`;
                 }
                 
-                // Показываем карточку профиля
                 loadingElement.style.display = 'none';
                 profileCard.style.display = 'block';
                 
+                // Загружаем видео после успешной загрузки профиля
+                if (currentUserId) {
+                    loadUserVideos(currentUserId);
+                }
+                
             } catch (error) {
                 console.error('Ошибка загрузки профиля:', error);
-                
-                // Показываем сообщение об ошибке
                 loadingElement.style.display = 'none';
                 errorElement.style.display = 'block';
-                document.getElementById('error-text').textContent = 
+                document.getElementById('error-profile-text').textContent = 
                     `Не удалось загрузить данные профиля: ${error.message}`;
             }
         }
 
-        // Обработчики кнопок
+        // Функция для загрузки видео пользователя
+        async function loadUserVideos(userId) {
+            const loadingElement = document.getElementById('loading-videos');
+            const errorElement = document.getElementById('error-videos');
+            const videosSection = document.getElementById('videos-section');
+            
+            loadingElement.style.display = 'flex';
+            errorElement.style.display = 'none';
+            videosSection.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/channel_actions/videos/author/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.videos) {
+                    throw new Error('Некорректный формат данных видео');
+                }
+                
+                // Обновляем счетчик видео
+                document.getElementById('videos-count').textContent = 
+                    `${data.videos.length} ${getVideoWord(data.videos.length)}`;
+                
+                // Очищаем и заполняем сетку видео
+                const videosGrid = document.getElementById('videos-grid');
+                videosGrid.innerHTML = '';
+                
+                if (data.videos.length === 0) {
+                    videosGrid.innerHTML = `
+                        <div class="no-videos">
+                            <h4>Нет загруженных видео</h4>
+                            <p>Загрузите свое первое видео!</p>
+                        </div>
+                    `;
+                } else {
+                    data.videos.forEach(video => {
+                        const videoCard = createVideoCard(video);
+                        videosGrid.appendChild(videoCard);
+                    });
+                }
+                
+                loadingElement.style.display = 'none';
+                videosSection.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Ошибка загрузки видео:', error);
+                loadingElement.style.display = 'none';
+                errorElement.style.display = 'block';
+                document.getElementById('error-videos-text').textContent = 
+                    `Не удалось загрузить список видео: ${error.message}`;
+            }
+        }
+
+        // Функция для создания карточки видео
+        function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            card.innerHTML = `
+                <div class="video-thumbnail">
+                    ${video.is_complete ? '▶' : '⏳'}
+                </div>
+                <div class="video-info">
+                    <div class="video-title">${video.is_complete ? 'Видео' : 'Обработка...'} ${video.uuid.substring(0, 8)}</div>
+                    <div class="video-stats">
+                        <span>👁️ ${video.views_count}</span>
+                        <span>❤️ ${video.likes_count}</span>
+                    </div>
+                    <div class="video-date">${formatRelativeDate(video.created_at)}</div>
+                    <div class="video-actions">
+                        <button class="btn-watch" data-video-id="${video.uuid}">
+                            ${video.is_complete ? 'Смотреть' : 'Обрабатывается'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем обработчик для кнопки просмотра
+            const watchBtn = card.querySelector('.btn-watch');
+            watchBtn.addEventListener('click', () => {
+                openVideoModal(video.uuid, video);
+            });
+            
+            // Если видео не обработано, делаем кнопку неактивной
+            if (!video.is_complete) {
+                watchBtn.disabled = true;
+            }
+            
+            return card;
+        }
+
+        // Функция для открытия модального окна с видео
+        function openVideoModal(videoId, videoData) {
+            currentVideoId = videoId;
+            const modal = document.getElementById('video-modal');
+            const videoUuid = document.getElementById('video-uuid');
+            const videoStatus = document.getElementById('video-status');
+            
+            // Обновляем информацию о видео
+            videoUuid.textContent = videoId;
+            videoStatus.textContent = videoData.is_complete ? '✅ Обработано' : '⏳ В обработке';
+            
+            // Показываем модальное окно
+            modal.style.display = 'flex';
+            
+            // Автоматически загружаем видео в качестве 720p
+            if (videoData.is_complete) {
+                loadVideoInPlayer(videoId, '720');
+            } else {
+                showVideoMessage('⏳ Видео обрабатывается<br><small>Попробуйте позже</small>');
+            }
+        }
+
+        // Функция для загрузки видео в плеер
+        function loadVideoInPlayer(videoId, quality) {
+            const videoPlayerContainer = document.querySelector('.video-player-container');
+            const url = `/files/video_files/${videoId}/${quality}p-${videoId}.m3u8`;
+            
+            // Очищаем предыдущее видео
+            videoPlayerContainer.innerHTML = '';
+            
+            // Создаем новый video элемент
+            const videoElement = document.createElement('video');
+            videoElement.id = 'current-video-player';
+            videoElement.controls = true;
+            videoElement.style.width = '100%';
+            videoElement.style.height = 'auto';
+            videoElement.style.maxHeight = '70vh';
+            videoElement.style.borderRadius = '8px';
+            
+            videoPlayerContainer.appendChild(videoElement);
+            
+            if (Hls.isSupported()) {
+                // Уничтожаем предыдущий HLS instance
+                if (currentHls) {
+                    currentHls.destroy();
+                }
+                
+                currentHls = new Hls({
+                    debug: false,
+                    enableWorker: false
+                });
+                
+                currentHls.loadSource(url);
+                currentHls.attachMedia(videoElement);
+                currentHls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log('Видео загружено успешно');
+                });
+                
+                currentHls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('Ошибка HLS:', data);
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                showVideoMessage('❌ Ошибка сети<br><small>Видео недоступно</small>');
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                showVideoMessage('❌ Ошибка видеофайла<br><small>Попробуйте другое качество</small>');
+                                break;
+                            default:
+                                showVideoMessage('❌ Неизвестная ошибка<br><small>При загрузке видео</small>');
+                                break;
+                        }
+                    }
+                });
+                
+            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                videoElement.src = url;
+                videoElement.addEventListener('loadedmetadata', function() {
+                    console.log('Видео загружено успешно (Safari)');
+                });
+            } else {
+                showVideoMessage('❌ Браузер не поддерживает HLS<br><small>Попробуйте другой браузер</small>');
+            }
+        }
+
+        // Функция для показа сообщения в плеере
+        function showVideoMessage(message) {
+            const videoPlayerContainer = document.querySelector('.video-player-container');
+            videoPlayerContainer.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: #aaa; flex-direction: column; gap: 15px; text-align: center;">
+                    <div style="font-size: 48px;">${message.split('<br>')[0].includes('❌') ? '❌' : '⏳'}</div>
+                    <div style="font-size: 18px;">${message.replace(/<br><small>/g, '<br>').replace(/<\/small>/g, '')}</div>
+                </div>
+            `;
+        }
+
+        // Функция для закрытия модального окна
+        function closeVideoModal() {
+            const modal = document.getElementById('video-modal');
+            modal.style.display = 'none';
+            
+            // Останавливаем и очищаем видео
+            const videoElement = document.getElementById('current-video-player');
+            if (videoElement) {
+                videoElement.pause();
+                videoElement.src = '';
+            }
+            
+            // Очищаем HLS instance
+            if (currentHls) {
+                currentHls.destroy();
+                currentHls = null;
+            }
+        }
+
+        // Вспомогательная функция для правильного склонения слова "видео"
+        function getVideoWord(count) {
+            if (count % 10 === 1 && count % 100 !== 11) return 'видео';
+            if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return 'видео';
+            return 'видео';
+        }
+
+        // Обработчики событий
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProfileData();
+        });
+
+        document.getElementById('retry-profile-btn')?.addEventListener('click', loadProfileData);
+        document.getElementById('retry-videos-btn')?.addEventListener('click', () => {
+            if (currentUserId) loadUserVideos(currentUserId);
+        });
+
         document.querySelector('.btn-edit')?.addEventListener('click', function() {
             alert('Функция редактирования профиля будет реализована позже');
         });
@@ -586,13 +1225,27 @@
             }
         });
 
-        document.getElementById('retry-btn')?.addEventListener('click', function() {
-            loadProfileData();
+        // Обработчики для модального окна видео
+        document.getElementById('close-modal')?.addEventListener('click', closeVideoModal);
+
+        document.getElementById('load-video-btn')?.addEventListener('click', function() {
+            const quality = document.getElementById('quality-select').value;
+            if (currentVideoId) {
+                loadVideoInPlayer(currentVideoId, quality);
+            }
         });
 
-        // Загружаем данные при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            loadProfileData();
+        // Закрытие модального окна по клику на фон или ESC
+        document.getElementById('video-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeVideoModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeVideoModal();
+            }
         });
     </script>
 </body>

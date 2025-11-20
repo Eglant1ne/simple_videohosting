@@ -67,7 +67,7 @@ services:
                 condition: service_healthy
 
 
-    channel_actions:
+    channel_actions_service:
         build:
             context: ./services/channel_actions_service
             dockerfile: Dockerfile
@@ -235,7 +235,7 @@ services:
                 condition: service_healthy
             file_upload_service:
                 condition: service_healthy
-            channel_actions:
+            channel_actions_service:
                 condition: service_healthy
 
         healthcheck:
