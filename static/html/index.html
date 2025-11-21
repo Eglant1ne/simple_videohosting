@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSETube - Главная</title>
+    <style>
+        :root {
+            --primary: #ff0000;
+            --primary-dark: #cc0000;
+            --dark: #000;
+            --light: #fff;
+            --gray: #333;
+            --gray-light: #444;
+            --gray-dark: #222;
+            --gray-darker: #1a1a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 20%);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 8px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            flex: 1;
+        }
+
+        .logo-link {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .logo-link:hover {
+            transform: translateY(-1px);
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-login {
+            background-color: transparent;
+            color: var(--light);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-login:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-register {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1.5px solid var(--light);
+        }
+
+        .btn-register:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-1px);
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            color: #aaa;
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Фильтры и поиск */
+        .filters-section {
+            background: var(--gray-darker);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--gray-light);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            background: var(--gray);
+            color: var(--light);
+            font-size: 16px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            background: var(--gray);
+            color: var(--light);
+            font-size: 16px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Сетка видео */
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .video-card {
+            background: var(--gray-darker);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-light);
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--gray), var(--gray-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .video-thumbnail video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .video-thumbnail .thumbnail-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--gray), var(--gray-light));
+            transition: opacity 0.3s ease;
+        }
+
+        .video-thumbnail.playing .thumbnail-placeholder {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .video-thumbnail.playing video {
+            display: block;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .thumbnail-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 6px;
+            z-index: 3;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .loading-pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .video-info {
+            padding: 20px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--light);
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .video-author {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .author-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .author-link:hover {
+            color: #ff6666;
+            text-decoration: underline;
+        }
+
+        .author-link.current-user {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .video-stats {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .video-date {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-direction: column;
+        }
+
+        .btn-watch {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-watch:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+        }
+
+        .btn-watch:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-edit-video {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit-video:hover {
+            background: #777;
+            transform: translateY(-1px);
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 40px;
+        }
+
+        .pagination-btn {
+            background: var(--gray-dark);
+            color: var(--light);
+            border: 1px solid var(--gray-light);
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            color: #aaa;
+            font-size: 14px;
+            margin: 0 15px;
+        }
+
+        /* Состояния загрузки */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: #aaa;
+            font-size: 18px;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .error-message h3 {
+            color: #ff6666;
+            margin-bottom: 10px;
+        }
+
+        .no-videos {
+            text-align: center;
+            padding: 60px;
+            color: #aaa;
+        }
+
+        .no-videos h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Анимации */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .video-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1200px) {
+            .videos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+            }
+            
+            .videos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .page-header h1 {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .auth-buttons {
+                gap: 8px;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" class="logo-link">HSETube</a>
+            </div>
+            <div class="auth-buttons">
+                <a href="/login" class="btn btn-login">Вход</a>
+                <a href="/register" class="btn btn-register">Регистрация</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <h1>HSETube</h1>
+                <p>Смотрите лучшие видео от сообщества HSETube</p>
+            </div>
+
+            <!-- Фильтры и поиск -->
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="search-box">
+                        <input type="text" id="search-input" class="search-input" placeholder="Поиск видео...">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <div>
+                        <select id="sort-select" class="filter-select">
+                            <option value="newest">Сначала новые</option>
+                            <option value="oldest">Сначала старые</option>
+                            <option value="popular">По популярности</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="status-select" class="filter-select">
+                            <option value="all">Все видео</option>
+                            <option value="completed">Только обработанные</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Контент -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Загрузка видео...</div>
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;">
+                <h3>Ошибка загрузки</h3>
+                <p id="error-text">Не удалось загрузить видео</p>
+                <button id="retry-btn" class="btn-watch" style="margin-top: 15px;">Попробовать снова</button>
+            </div>
+
+            <div id="videos-container" style="display: none;">
+                <div id="videos-grid" class="videos-grid">
+                    <!-- Видео будут загружены здесь -->
+                </div>
+
+                <!-- Пагинация -->
+                <div class="pagination">
+                    <button id="prev-btn" class="pagination-btn" disabled>‹ Назад</button>
+                    <div id="pagination-info" class="pagination-info">Страница 1 из 1</div>
+                    <button id="next-btn" class="pagination-btn" disabled>Вперед ›</button>
+                </div>
+            </div>
+
+            <div id="no-videos" class="no-videos" style="display: none;">
+                <h3>Видео не найдены</h3>
+                <p>Попробуйте изменить параметры поиска</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentPageSize = 12;
+        let totalPages = 1;
+        let currentHls = null;
+        let currentVideoId = null;
+        let videoPreviews = new Map();
+        let currentHoverVideo = null;
+        let currentUser = null;
+        let usersCache = new Map();
+
+        // Проверка авторизации
+        async function checkAuth() {
+            try {
+                const response = await fetch('/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    return true;
+                } else {
+                    currentUser = null;
+                    return false;
+                }
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+                currentUser = null;
+                return false;
+            }
+        }
+
+        // Обновление навигации
+        function updateNavigation() {
+            const authButtons = document.querySelector('.auth-buttons');
+            
+            if (currentUser) {
+                // Пользователь авторизован
+                authButtons.innerHTML = `
+                    <a href="/profile" class="btn btn-login">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <span class="user-avatar">
+                                ${currentUser.username ? currentUser.username.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                            ${currentUser.username || 'Профиль'}
+                        </span>
+                    </a>
+                    <button id="logout-btn" class="btn btn-register">Выйти</button>
+                `;
+
+                // Добавляем обработчик для кнопки выхода
+                document.getElementById('logout-btn').addEventListener('click', logoutUser);
+            } else {
+                // Пользователь не авторизован
+                authButtons.innerHTML = `
+                    <a href="/login" class="btn btn-login">Вход</a>
+                    <a href="/register" class="btn btn-register">Регистрация</a>
+                `;
+            }
+        }
+
+        // Функция для выхода
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Выход успешен:', data.msg);
+                    
+                    // Обновляем интерфейс
+                    currentUser = null;
+                    updateNavigation();
+                    
+                    // Перезагружаем страницу чтобы обновить данные
+                    window.location.reload();
+                } else {
+                    throw new Error('Ошибка при выходе');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка выхода:', error);
+                alert('Ошибка при выходе из аккаунта');
+            }
+        }
+
+        // Получение информации о пользователе
+        async function getUserInfo(userId) {
+            if (usersCache.has(userId)) {
+                return usersCache.get(userId);
+            }
+            
+            try {
+                const response = await fetch(`/channel_actions/users/${userId}`);
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+                
+                const userData = await response.json();
+                usersCache.set(userId, userData);
+                return userData;
+                
+            } catch (error) {
+                console.error(`Ошибка загрузки пользователя ${userId}:`, error);
+                return {
+                    id: userId,
+                    username: `user_${userId}`,
+                    email: null
+                };
+            }
+        }
+
+        // Загрузка видео
+        async function loadVideos(page = 1, pageSize = 12) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error-message');
+            const container = document.getElementById('videos-container');
+            const noVideos = document.getElementById('no-videos');
+
+            loading.style.display = 'flex';
+            error.style.display = 'none';
+            container.style.display = 'none';
+            noVideos.style.display = 'none';
+
+            try {
+                console.log('🔄 Загрузка видео...');
+                const response = await fetch(`/channel_actions/videos/?page=${page}&page_size=${pageSize}`);
+                
+                console.log('📨 Статус ответа:', response.status);
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('📊 Получено видео:', data.videos?.length);
+                
+                if (!data.videos || !Array.isArray(data.videos)) {
+                    throw new Error('Некорректный формат данных');
+                }
+
+                // Обновляем пагинацию
+                currentPage = page;
+                totalPages = data.pagination?.total_pages || 1;
+                updatePagination(data.pagination);
+
+                // Отображаем видео
+                await displayVideos(data.videos);
+
+                loading.style.display = 'none';
+                
+                if (data.videos.length === 0) {
+                    noVideos.style.display = 'block';
+                } else {
+                    container.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('❌ Ошибка загрузки видео:', error);
+                loading.style.display = 'none';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('error-text').textContent = 
+                    `Не удалось загрузить видео: ${error.message}`;
+            }
+        }
+
+        // Отображение видео
+        async function displayVideos(videos) {
+            const grid = document.getElementById('videos-grid');
+            
+            // Очищаем предыдущие превью
+            cleanupVideoPreviews();
+            
+            grid.innerHTML = '';
+
+            // Создаем карточки для каждого видео
+            for (const video of videos) {
+                const videoCard = await createVideoCard(video);
+                grid.appendChild(videoCard);
+            }
+        }
+
+        // Создание карточки видео с поддержкой превью
+        async function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            
+            // Получаем информацию об авторе
+            const authorInfo = await getUserInfo(video.author_id);
+            const authorUsername = video.author_username || authorInfo.username;
+            
+            // Проверяем, является ли текущий пользователь автором видео
+            const isCurrentUserAuthor = currentUser && currentUser.id === video.author_id;
+            const authorDisplayName = isCurrentUserAuthor ? 
+                `<strong>${authorUsername} (Вы)</strong>` : authorUsername;
+            const authorLinkClass = isCurrentUserAuthor ? 'author-link current-user' : 'author-link';
+            
+            card.innerHTML = `
+                <div class="video-thumbnail" data-video-id="${video.uuid}">
+                    <div class="thumbnail-placeholder">
+                        ${video.is_complete ? '▶' : '⏳'}
+                    </div>
+                    <video muted loop playsinline preload="none"></video>
+                    ${video.is_complete ? '<div class="video-duration">--:--</div>' : ''}
+                </div>
+                <div class="video-info">
+                    <div class="video-title">
+                        ${video.is_complete ? 'Видео' : 'Обработка...'} ${video.uuid.substring(0, 8)}
+                    </div>
+                    <div class="video-author">
+                        Автор: <a href="/profile/${video.author_id}" class="${authorLinkClass}" target="_blank">${authorDisplayName}</a>
+                    </div>
+                    <div class="video-stats">
+                        <span>👁️ ${video.views_count}</span>
+                        <span>❤️ ${video.likes_count}</span>    
+                        <span>👎 ${video.dislikes_count}</span>
+                    </div>
+                    <div class="video-date">${formatDate(video.created_at)}</div>
+                    <div class="video-actions">
+                        <button class="btn-watch" data-video-id="${video.uuid}">
+                            ${video.is_complete ? 'Смотреть' : 'Обрабатывается'}
+                        </button>
+                        ${isCurrentUserAuthor ? `<button class="btn-edit-video" data-video-id="${video.uuid}">Редактировать</button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            const thumbnail = card.querySelector('.video-thumbnail');
+            const videoElement = thumbnail.querySelector('video');
+            const watchBtn = card.querySelector('.btn-watch');
+            const authorLink = card.querySelector('.author-link');
+            const editBtn = card.querySelector('.btn-edit-video');
+
+            // Добавляем обработчики для превью
+            if (video.is_complete) {
+                setupVideoPreview(thumbnail, videoElement, video.uuid);
+                
+                // Обработчик клика по превью
+                thumbnail.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openVideoModal(video.uuid, video);
+                });
+            } else {
+                thumbnail.style.cursor = 'default';
+            }
+
+            watchBtn.addEventListener('click', () => {
+                openVideoModal(video.uuid, video);
+            });
+
+            // Обработчик для ссылки автора
+            authorLink.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isCurrentUserAuthor) {
+                    // Если это текущий пользователь, открываем свой профиль в этой же вкладке
+                    window.location.href = '/profile';
+                }
+                // Для других пользователей ссылка откроется в новой вкладке (target="_blank")
+            });
+
+            // Обработчик для кнопки редактирования (только для своих видео)
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editVideo(video.uuid);
+                });
+            }
+
+            if (!video.is_complete) {
+                watchBtn.disabled = true;
+            }
+
+            return card;
+        }
+
+        // Функция для редактирования видео
+        function editVideo(videoId) {
+            console.log('Редактирование видео:', videoId);
+            alert(`Редактирование видео ${videoId}\nЭта функция будет реализована позже`);
+        }
+
+        // Настройка превью видео при наведении
+        function setupVideoPreview(thumbnail, videoElement, videoId) {
+            let hoverTimeout;
+            let isVideoLoaded = false;
+
+            // При наведении мыши
+            thumbnail.addEventListener('mouseenter', () => {
+                if (!videoElement || currentHoverVideo === videoId) return;
+                
+                hoverTimeout = setTimeout(async () => {
+                    if (currentHoverVideo) {
+                        // Останавливаем предыдущее видео
+                        stopVideoPreview(currentHoverVideo);
+                    }
+                    
+                    currentHoverVideo = videoId;
+                    
+                    if (!isVideoLoaded) {
+                        // Показываем индикатор загрузки
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.className = 'thumbnail-loading loading-pulse';
+                        loadingDiv.textContent = 'Загрузка...';
+                        thumbnail.appendChild(loadingDiv);
+                        
+                        try {
+                            await loadVideoPreview(videoElement, videoId);
+                            isVideoLoaded = true;
+                        } catch (error) {
+                            console.error('Ошибка загрузки превью:', error);
+                            // Если не удалось загрузить превью, показываем placeholder
+                            loadingDiv.textContent = '❌ Ошибка';
+                            setTimeout(() => loadingDiv.remove(), 1000);
+                            return;
+                        } finally {
+                            loadingDiv.remove();
+                        }
+                    }
+                    
+                    // Воспроизводим видео
+                    if (videoElement.readyState >= 3) {
+                        thumbnail.classList.add('playing');
+                        videoElement.currentTime = 5; // Начинаем с 5 секунды
+                        videoElement.play().catch(e => {
+                            console.log('Автовоспроизведение превью заблокировано:', e);
+                        });
+                    }
+                }, 500); // Задержка 500ms перед началом воспроизведения
+            });
+
+            // При уходе мыши
+            thumbnail.addEventListener('mouseleave', () => {
+                clearTimeout(hoverTimeout);
+                if (currentHoverVideo === videoId) {
+                    stopVideoPreview(videoId);
+                }
+            });
+
+            // Сохраняем ссылки для управления
+            videoPreviews.set(videoId, {
+                element: videoElement,
+                thumbnail: thumbnail,
+                isLoaded: false,
+                hoverTimeout: null
+            });
+        }
+
+        // Загрузка превью видео
+        async function loadVideoPreview(videoElement, videoId) {
+            return new Promise((resolve, reject) => {
+                // Пробуем загрузить превью в качестве 360p
+                const previewUrl = `/files/video_files/${videoId}/360p-${videoId}.m3u8`;
+                
+                if (Hls.isSupported()) {
+                    const hls = new Hls({
+                        debug: false,
+                        enableWorker: false,
+                        lowLatencyMode: true,
+                        backBufferLength: 0
+                    });
+                    
+                    hls.loadSource(previewUrl);
+                    hls.attachMedia(videoElement);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        videoPreviews.get(videoId).isLoaded = true;
+                        videoPreviews.get(videoId).hls = hls;
+                        resolve();
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            reject(new Error('Ошибка загрузки превью'));
+                        }
+                    });
+                    
+                } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = previewUrl;
+                    videoElement.addEventListener('loadeddata', () => {
+                        videoPreviews.get(videoId).isLoaded = true;
+                        resolve();
+                    });
+                    videoElement.addEventListener('error', () => {
+                        reject(new Error('Ошибка загрузки превью'));
+                    });
+                } else {
+                    reject(new Error('Браузер не поддерживает HLS'));
+                }
+            });
+        }
+
+        // Остановка превью видео
+        function stopVideoPreview(videoId) {
+            const preview = videoPreviews.get(videoId);
+            if (preview) {
+                const { element, thumbnail } = preview;
+                
+                if (element) {
+                    element.pause();
+                    element.currentTime = 0;
+                }
+                
+                if (thumbnail) {
+                    thumbnail.classList.remove('playing');
+                }
+            }
+            
+            if (currentHoverVideo === videoId) {
+                currentHoverVideo = null;
+            }
+        }
+
+        // Очистка всех превью
+        function cleanupVideoPreviews() {
+            videoPreviews.forEach((preview, videoId) => {
+                stopVideoPreview(videoId);
+                
+                // Уничтожаем HLS instances
+                if (preview.hls) {
+                    preview.hls.destroy();
+                }
+            });
+            
+            videoPreviews.clear();
+            currentHoverVideo = null;
+        }
+
+        // Обновление пагинации
+        function updatePagination(pagination) {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+
+            const startItem = ((currentPage - 1) * currentPageSize) + 1;
+            const endItem = Math.min(currentPage * currentPageSize, pagination?.total_count || 0);
+            
+            paginationInfo.textContent = 
+                `Страница ${currentPage} из ${totalPages} (${startItem}-${endItem} из ${pagination?.total_count || 0})`;
+        }
+
+        // Форматирование даты
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        // Проверка доступных качеств видео
+        async function checkAvailableQualities(videoId) {
+            const qualities = [360, 480, 720, 1080];
+            const availableQualities = [];
+            
+            // Проверяем каждое качество
+            for (const quality of qualities) {
+                try {
+                    const response = await fetch(`/files/video_files/${videoId}/${quality}p-${videoId}.m3u8`, {
+                        method: 'HEAD'
+                    });
+                    
+                    if (response.ok) {
+                        availableQualities.push(quality);
+                    }
+                } catch (error) {
+                    // Игнорируем ошибки для отдельных качеств
+                }
+            }
+            
+            return availableQualities.sort((a, b) => a - b);
+        }
+
+        // Функции для модального окна
+        function openVideoModal(videoId, videoData) {
+            console.log('🎬 Открытие видео:', videoId);
+            currentVideoId = videoId; // Сохраняем ID видео для повторной загрузки
+            
+            // Останавливаем все превью перед открытием модального окна
+            cleanupVideoPreviews();
+            
+            // Создаем модальное окно с видеоплеером
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: var(--gray-darker); padding: 20px; border-radius: 12px; max-width: 900px; width: 100%; border: 1px solid var(--gray-light); position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--gray-light);">
+                        <h3 style="color: white; margin: 0;">Просмотр видео</h3>
+                        <button id="close-modal-btn" style="background: var(--primary); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            ✕
+                        </button>
+                    </div>
+                    
+                    <div id="video-player-container" style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: var(--dark); margin-bottom: 15px;">
+                        <video id="modal-video-player" controls style="width: 100%; height: auto; max-height: 70vh; border-radius: 8px; display: none;">
+                            Ваш браузер не поддерживает видео тег.
+                        </video>
+                        <div id="video-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+                            <div class="spinner" style="margin: 0 auto 10px;"></div>
+                            <div>Загрузка видео...</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px; padding: 15px; background: var(--gray-dark); border-radius: 8px;">
+                        <select id="modal-quality-select" style="padding: 8px 12px; border-radius: 6px; background: var(--gray); color: white; border: 1px solid var(--gray-light); font-size: 14px;">
+                            <option value="auto" selected>Авто (лучшее доступное)</option>
+                        </select>
+                        <button id="modal-load-video-btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600;">
+                            Применить качество
+                        </button>
+                        <div id="quality-info" style="color: #aaa; font-size: 12px; margin-left: auto;"></div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: var(--gray-dark); border-radius: 8px; color: #aaa; font-size: 14px;">
+                        <div>ID видео: <span style="color: white;">${videoId}</span></div>
+                        <div>Статус: <span style="color: ${videoData.is_complete ? '#00ff00' : '#ffa500'};">${videoData.is_complete ? '✅ Обработано' : '⏳ В обработке'}</span></div>
+                        <div>Автор: <span style="color: white;">${videoData.author_username || `user_${videoData.author_id}`}</span></div>
+                        <div>Доступные качества: <span id="available-qualities" style="color: white;">проверка...</span></div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Инициализируем видеоплеер
+            initializeVideoPlayer(videoId, videoData);
+            
+            // Обработчики событий
+            document.getElementById('close-modal-btn').addEventListener('click', () => {
+                closeVideoModal(modal);
+            });
+            
+            document.getElementById('modal-load-video-btn').addEventListener('click', () => {
+                const quality = document.getElementById('modal-quality-select').value;
+                loadVideoInModal(videoId, quality);
+            });
+            
+            // Закрытие по клику на фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeVideoModal(modal);
+                }
+            });
+            
+            // Закрытие по ESC
+            const closeOnEsc = (e) => {
+                if (e.key === 'Escape') {
+                    closeVideoModal(modal);
+                    document.removeEventListener('keydown', closeOnEsc);
+                }
+            };
+            document.addEventListener('keydown', closeOnEsc);
+        }
+
+        // Инициализация видеоплеера в модальном окне
+        async function initializeVideoPlayer(videoId, videoData) {
+            if (!videoData.is_complete) {
+                // Если видео не обработано
+                document.getElementById('video-player-container').innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: #aaa; flex-direction: column; gap: 15px; text-align: center;">
+                        <div style="font-size: 48px;">⏳</div>
+                        <div style="font-size: 18px;">Видео обрабатывается<br><small>Попробуйте позже</small></div>
+                    </div>
+                `;
+                document.getElementById('modal-load-video-btn').disabled = true;
+                document.getElementById('modal-quality-select').disabled = true;
+                document.getElementById('available-qualities').textContent = 'недоступно (видео в обработке)';
+                return;
+            }
+            
+            // Проверяем доступные качества
+            const availableQualities = await checkAvailableQualities(videoId);
+            const qualitySelect = document.getElementById('modal-quality-select');
+            
+            // Обновляем информацию о доступных качествах
+            document.getElementById('available-qualities').textContent = 
+                availableQualities.length > 0 ? availableQualities.map(q => `${q}p`).join(', ') : 'не найдено';
+            
+            if (availableQualities.length === 0) {
+                // Если нет доступных качеств
+                showVideoError('❌ Видеофайлы не найдены. Возможно, видео еще обрабатывается.');
+                document.getElementById('modal-load-video-btn').disabled = true;
+                qualitySelect.disabled = true;
+                return;
+            }
+            
+            // Заполняем селект доступными качествами
+            qualitySelect.innerHTML = '<option value="auto" selected>Авто (лучшее доступное)</option>';
+            availableQualities.forEach(quality => {
+                const option = document.createElement('option');
+                option.value = quality;
+                option.textContent = `${quality}p`;
+                qualitySelect.appendChild(option);
+            });
+            
+            // Автоматически загружаем лучшее доступное качество
+            const bestQuality = availableQualities[availableQualities.length - 1];
+            loadVideoInModal(videoId, 'auto', availableQualities);
+        }
+
+        // Загрузка видео в модальном окне
+        async function loadVideoInModal(videoId, quality, availableQualities = null) {
+            const videoPlayer = document.getElementById('modal-video-player');
+            const loadingElement = document.getElementById('video-loading');
+            const loadBtn = document.getElementById('modal-load-video-btn');
+            const qualityInfo = document.getElementById('quality-info');
+            
+            // Получаем доступные качества если не переданы
+            if (!availableQualities) {
+                availableQualities = await checkAvailableQualities(videoId);
+            }
+            
+            // Определяем качество для загрузки
+            let targetQuality = quality;
+            if (quality === 'auto') {
+                targetQuality = availableQualities[availableQualities.length - 1]; // Лучшее доступное
+            } else {
+                targetQuality = parseInt(quality);
+                // Проверяем, доступно ли выбранное качество
+                if (!availableQualities.includes(targetQuality)) {
+                    showVideoError(`❌ Качество ${targetQuality}p недоступно для этого видео`);
+                    qualityInfo.innerHTML = `<span style="color: #ff6666;">❌ ${targetQuality}p недоступно</span>`;
+                    return;
+                }
+            }
+            
+            // Показываем индикатор загрузки
+            loadingElement.style.display = 'block';
+            videoPlayer.style.display = 'none';
+            loadBtn.disabled = true;
+            loadBtn.textContent = 'Загрузка...';
+            qualityInfo.innerHTML = `<span style="color: #aaa;">Загрузка ${targetQuality}p...</span>`;
+            
+            const url = `/files/video_files/${videoId}/${targetQuality}p-${videoId}.m3u8`;
+            
+            // Очищаем предыдущий HLS
+            if (currentHls) {
+                currentHls.destroy();
+                currentHls = null;
+            }
+            
+            if (Hls.isSupported()) {
+                currentHls = new Hls({
+                    debug: false,
+                    enableWorker: false,
+                    autoStartLoad: true,
+                    startLevel: -1
+                });
+                
+                currentHls.loadSource(url);
+                currentHls.attachMedia(videoPlayer);
+                
+                currentHls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    console.log(`✅ Видео загружено успешно (${targetQuality}p)`);
+                    loadingElement.style.display = 'none';
+                    videoPlayer.style.display = 'block';
+                    loadBtn.disabled = false;
+                    loadBtn.textContent = 'Применить качество';
+                    qualityInfo.innerHTML = `<span style="color: #00ff00;">✅ ${targetQuality}p</span>`;
+                    
+                    // Автовоспроизведение
+                    videoPlayer.play().catch(e => {
+                        console.log('Автовоспроизведение заблокировано:', e);
+                    });
+                });
+                
+                currentHls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
+                    // Обновляем информацию о текущем качестве
+                    const currentLevel = currentHls.currentLevel;
+                    const levels = currentHls.levels;
+                    if (levels && levels[currentLevel]) {
+                        const currentQuality = levels[currentLevel].height;
+                        qualityInfo.innerHTML = `<span style="color: #00ff00;">▶ ${currentQuality}p</span>`;
+                    }
+                });
+                
+                currentHls.on(Hls.Events.ERROR, function(event, data) {
+                    console.error('❌ Ошибка HLS:', data);
+                    loadingElement.style.display = 'none';
+                    
+                    if (data.fatal) {
+                        let errorMessage = '❌ Ошибка загрузки видео';
+                        
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                errorMessage = '❌ Ошибка сети. Видео недоступно.';
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                errorMessage = `❌ Ошибка видеофайла ${targetQuality}p. Попробуйте другое качество.`;
+                                break;
+                            default:
+                                errorMessage = '❌ Неизвестная ошибка при загрузке видео.';
+                                break;
+                        }
+                        
+                        showVideoError(errorMessage);
+                        qualityInfo.innerHTML = `<span style="color: #ff6666;">❌ Ошибка ${targetQuality}p</span>`;
+                    }
+                    
+                    loadBtn.disabled = false;
+                    loadBtn.textContent = 'Применить качество';
+                });
+                
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                // Для Safari
+                videoPlayer.src = url;
+                videoPlayer.addEventListener('loadeddata', function() {
+                    console.log(`✅ Видео загружено успешно (Safari, ${targetQuality}p)`);
+                    loadingElement.style.display = 'none';
+                    videoPlayer.style.display = 'block';
+                    loadBtn.disabled = false;
+                    loadBtn.textContent = 'Применить качество';
+                    qualityInfo.innerHTML = `<span style="color: #00ff00;">✅ ${targetQuality}p</span>`;
+                });
+                
+                videoPlayer.addEventListener('error', function() {
+                    console.error('❌ Ошибка загрузки видео');
+                    loadingElement.style.display = 'none';
+                    showVideoError(`❌ Ошибка загрузки видео ${targetQuality}p`);
+                    qualityInfo.innerHTML = `<span style="color: #ff6666;">❌ Ошибка ${targetQuality}p</span>`;
+                    loadBtn.disabled = false;
+                    loadBtn.textContent = 'Применить качество';
+                });
+            } else {
+                loadingElement.style.display = 'none';
+                showVideoError('❌ Ваш браузер не поддерживает HLS воспроизведение.');
+                qualityInfo.innerHTML = `<span style="color: #ff6666;">❌ Браузер не поддерживает HLS</span>`;
+                loadBtn.disabled = false;
+                loadBtn.textContent = 'Применить качество';
+            }
+        }
+
+        // Показать ошибку видео
+        function showVideoError(message) {
+            const container = document.getElementById('video-player-container');
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 400px; color: #ff6666; flex-direction: column; gap: 15px; text-align: center; padding: 20px;">
+                    <div style="font-size: 48px;">❌</div>
+                    <div style="font-size: 18px;">${message}</div>
+                    <button onclick="retryVideoLoad()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                        Попробовать снова
+                    </button>
+                </div>
+            `;
+        }
+
+        // Повторная попытка загрузки видео
+        function retryVideoLoad() {
+            const qualitySelect = document.getElementById('modal-quality-select');
+            const quality = qualitySelect.value;
+            
+            if (currentVideoId) {
+                loadVideoInModal(currentVideoId, quality);
+            }
+        }
+
+        // Закрытие модального окна
+        function closeVideoModal(modal) {
+            if (modal && modal.parentNode) {
+                // Останавливаем видео
+                const videoPlayer = document.getElementById('modal-video-player');
+                if (videoPlayer) {
+                    videoPlayer.pause();
+                    videoPlayer.src = '';
+                }
+                
+                // Уничтожаем HLS
+                if (currentHls) {
+                    currentHls.destroy();
+                    currentHls = null;
+                }
+                
+                modal.remove();
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Сначала проверяем авторизацию
+            await checkAuth();
+            updateNavigation();
+            
+            // Затем загружаем видео
+            loadVideos();
+
+            // Обработчики пагинации
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    loadVideos(currentPage - 1);
+                }
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    loadVideos(currentPage + 1);
+                }
+            });
+
+            // Обработчики фильтров
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                // Реализация поиска
+                console.log('Поиск:', e.target.value);
+            });
+
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                // Реализация сортировки
+                console.log('Сортировка:', e.target.value);
+                loadVideos(1); // Перезагружаем с первой страницы
+            });
+
+            document.getElementById('status-select').addEventListener('change', (e) => {
+                // Фильтрация по статусу
+                console.log('Статус:', e.target.value);
+                loadVideos(1);
+            });
+
+            document.getElementById('retry-btn').addEventListener('click', () => {
+                loadVideos(currentPage);
+            });
+
+            // Очистка при уходе со страницы
+            window.addEventListener('beforeunload', cleanupVideoPreviews);
+        });
+
+        // Также очищаем при скрытии страницы
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                cleanupVideoPreviews();
+            }
+        });
+    </script>
+</body>
+</html>

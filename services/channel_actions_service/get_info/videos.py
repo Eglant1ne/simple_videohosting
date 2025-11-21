@@ -1,10 +1,11 @@
 from pydantic import conint, UUID4
 
 from fastapi.responses import ORJSONResponse
+from fastapi import Query, HTTPException
 
 from .router import router
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from database.video_info import VideoInfo
 from database.session import async_session
@@ -47,3 +48,54 @@ async def get_author_videos(uuid: UUID4) -> ORJSONResponse:
                        "views_count": result.views_count}
         return ORJSONResponse({'msg': 'Видео успешно выбраны',
                                "video_info": result_info})
+
+@router.get('/videos/')
+async def get_all_videos(
+    page: int = Query(1, ge=1, description="Номер страницы"),
+    page_size: int = Query(20, ge=1, le=100, description="Размер страницы")
+):
+    """
+    Получение списка всех видео с пагинацией
+    """
+    try:
+        async with async_session() as session:
+            # Общее количество видео
+            total_count = await session.scalar(
+                select(func.count(VideoInfo.uuid))
+            )
+            print(f"📊 Всего видео в БД: {total_count}")
+            
+            offset = (page - 1) * page_size
+            stmt = (
+                select(VideoInfo)
+                .order_by(VideoInfo.created_at.desc())
+                .offset(offset)
+                .limit(page_size)
+            )
+            
+            result = await session.execute(stmt)
+            videos = result.scalars().all()
+            
+            print(f"🎬 Найдено видео на странице {page}: {len(videos)}")
+            
+            videos_data = [video.to_dict() for video in videos]
+            
+            return {
+                "msg": "Видео успешно получены",
+                "videos": videos_data,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total_count": total_count,
+                    "total_pages": (total_count + page_size - 1) // page_size if total_count > 0 else 1,
+                    "has_next": page * page_size < total_count,
+                    "has_prev": page > 1
+                }
+            }
+            
+    except Exception as e:
+        print(f"❌ Ошибка в /videos/: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Ошибка при получении видео: {str(e)}"
+        )
