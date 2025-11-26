@@ -63,7 +63,6 @@ async def get_all_videos(
             total_count = await session.scalar(
                 select(func.count(VideoInfo.uuid))
             )
-            print(f"📊 Всего видео в БД: {total_count}")
             
             offset = (page - 1) * page_size
             stmt = (
@@ -75,9 +74,7 @@ async def get_all_videos(
             
             result = await session.execute(stmt)
             videos = result.scalars().all()
-            
-            print(f"🎬 Найдено видео на странице {page}: {len(videos)}")
-            
+                        
             videos_data = [video.to_dict() for video in videos]
             
             return {
@@ -94,7 +91,6 @@ async def get_all_videos(
             }
             
     except Exception as e:
-        print(f"❌ Ошибка в /videos/: {str(e)}")
         raise HTTPException(
             status_code=500, 
             detail=f"Ошибка при получении видео: {str(e)}"

@@ -7,3 +7,4 @@ asyncpg==0.30.0
 orjson==3.10.16
 aiohttp==3.11.16
 faststream[rabbit]==0.5.39
+httpx==0.28.1
