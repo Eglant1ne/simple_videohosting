@@ -14,7 +14,24 @@ from database.session import async_session
 @router.get('/videos/author/{author_id}')
 async def get_author_videos(author_id: int, offset: conint(ge=0) = 0,
                             count: conint(ge=1, le=20) = 20) -> ORJSONResponse:
+    """
+    Получение списка видео конкретного автора с пагинацией.
+    
+    .. note::
+        Возвращает только полностью обработанные видео (is_complete = True)
+    
+    :param author_id: ID автора для фильтрации видео
+    :type author_id: int
+    :param offset: Смещение для пагинации (по умолчанию 0)
+    :type offset: int
+    :param count: Количество возвращаемых видео (1-20, по умолчанию 20)
+    :type count: int
+    :return: JSON ответ со списком видео автора
+    :rtype: ORJSONResponse
+    :raises: 500 Internal Server Error при ошибках БД
+    """
     async with async_session() as session:
+        # Выполняем запрос к БД с фильтрацией по автору и статусу обработки
         result = await session.execute(
             select(VideoInfo).where(VideoInfo.author_id == author_id, VideoInfo.is_complete == True).limit(
                 count).offset(offset)
@@ -26,6 +43,16 @@ async def get_author_videos(author_id: int, offset: conint(ge=0) = 0,
 
 @router.get('/videos/batch')
 async def get_author_videos(offset: conint(ge=0) = 0, count: conint(ge=1, le=20) = 20) -> ORJSONResponse:
+    """
+    Получение батча обработанных видео с пагинацией.
+
+    :param offset: Смещение для пагинации (по умолчанию 0)
+    :type offset: int
+    :param count: Количество возвращаемых видео (1-20, по умолчанию 20)
+    :type count: int
+    :return: JSON ответ со списком видео
+    :rtype: ORJSONResponse
+    """
     async with async_session() as session:
         result = await session.execute(
             select(VideoInfo).where(VideoInfo.is_complete == True).limit(count).offset(offset)
@@ -37,6 +64,18 @@ async def get_author_videos(offset: conint(ge=0) = 0, count: conint(ge=1, le=20)
 
 @router.get('/video/')
 async def get_author_videos(uuid: UUID4) -> ORJSONResponse:
+    """
+    Получение детальной информации о конкретном видео по UUID.
+    
+    .. note::
+        Возвращает 503 ошибку если видео еще не обработано
+    
+    :param uuid: UUID видео для поиска
+    :type uuid: UUID4
+    :return: Детальная информация о видео
+    :rtype: ORJSONResponse
+    :raises: 503 Service Unavailable если видео не обработано
+    """
     async with async_session() as session:
         result = await session.execute(
             select(VideoInfo).where(VideoInfo.uuid == uuid))
@@ -55,16 +94,27 @@ async def get_all_videos(
     page_size: int = Query(20, ge=1, le=100, description="Размер страницы")
 ):
     """
-    Получение списка всех видео с пагинацией
+    Получение списка всех видео с расширенной пагинацией.
+
+    :param page: Номер страницы (начинается с 1)
+    :type page: int
+    :param page_size: Размер страницы (1-100 видео)
+    :type page_size: int
+    :return: Список видео с метаданными пагинации
+    :rtype: dict
+    :raises: 500 Internal Server Error при ошибках БД
     """
     try:
         async with async_session() as session:
-            # Общее количество видео
+            # Получаем общее количество видео для расчета пагинации
             total_count = await session.scalar(
                 select(func.count(VideoInfo.uuid))
             )
             
+            # Рассчитываем смещение для SQL запроса
             offset = (page - 1) * page_size
+            
+            # Формируем запрос с сортировкой по дате создания и пагинацией
             stmt = (
                 select(VideoInfo)
                 .order_by(VideoInfo.created_at.desc())
@@ -75,8 +125,10 @@ async def get_all_videos(
             result = await session.execute(stmt)
             videos = result.scalars().all()
                         
+            # Конвертируем объекты VideoInfo в словари
             videos_data = [video.to_dict() for video in videos]
             
+            # Возвращаем ответ с полной информацией о пагинации
             return {
                 "msg": "Видео успешно получены",
                 "videos": videos_data,
@@ -91,6 +143,7 @@ async def get_all_videos(
             }
             
     except Exception as e:
+        # Ловим любые исключения и возвращаем 500 ошибку
         raise HTTPException(
             status_code=500, 
             detail=f"Ошибка при получении видео: {str(e)}"
