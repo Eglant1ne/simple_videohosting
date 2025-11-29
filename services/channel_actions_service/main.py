@@ -23,6 +23,12 @@ from message_broker.consumers import unprocessed_video_uploaded_queue, convert_v
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Контекстный менеджер для управления жизненным циклом приложения.
+    
+    Выполняет инициализацию и завершение работы RabbitMQ брокера.
+    Создает необходимые очереди при запуске приложения.
+    """
     rabbitmq_broker = RabbitBroker(rabbitmq_url)
     await rabbitmq_broker.connect()
     await rabbitmq_broker.declare_queue(unprocessed_video_uploaded_queue)
@@ -42,9 +48,24 @@ app.include_router(broker_router)
 
 
 async def main():
+    """
+    Основная асинхронная функция для инициализации приложения.
+    
+    Выполняет создание таблиц в базе данных перед запуском сервера.
+    """
     await database.create_tables.create_tables()
 
 
 if __name__ == '__main__':
+    """
+    Точка входа при запуске приложения напрямую.
+    
+    Запускает инициализацию базы данных и стартует Uvicorn сервер.
+    Настройки сервера:
+    - Хост: 0.0.0.0 (доступен со всех интерфейсов)
+    - Порт: 7000
+    - Количество воркеров: из конфигурации WORKER_THREADS
+    - Режим перезагрузки: отключен
+    """
     asyncio.run(main())
     uvicorn.run("main:app", host='0.0.0.0', port=7000, workers=WORKER_THREADS.count, reload=False)
