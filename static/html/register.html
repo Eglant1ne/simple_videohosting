@@ -468,7 +468,7 @@ body {
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', function(event) {
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             
             resetErrors();
@@ -514,25 +514,28 @@ body {
                     password: password
                 };
 
-                fetch('/auth/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => {
+                try {
+                    const response = await fetch('/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
                     if (response.ok) {
-                        window.location.href = '/auth/me';
+                        // Успешная регистрация - перенаправляем на страницу логина
+                        window.location.href = '/login';
                     } else {
-                        return response.json().then(data => {
-                            alert(data.message || 'Регистрация не удалась');
-                        });
+                        const errorData = await response.json();
+                        // Показываем ошибку с сервера
+                        showError('general-error', errorData.msg || `Ошибка: ${response.status}`);
                     }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                });
+                } catch (error) {
+                    // Обработка сетевых ошибок
+                    showError('general-error', 'Ошибка сети. Попробуйте позже.');
+                    console.error('Registration error:', error);
+                }
             }
         });
         

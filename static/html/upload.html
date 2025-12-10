@@ -3,22 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выгрузка файла с прогрессбаром</title>
-        <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Arial', sans-serif;
+    <title>Загрузка видео - HSETube</title>
+    <style>
+        :root {
+            --primary: #ff0000;
+            --primary-dark: #cc0000;
+            --dark: #000;
+            --light: #fff;
+            --gray: #333;
+            --gray-light: #444;
+            --gray-dark: #222;
+            --gray-darker: #1a1a1a;
+        }
+        
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
             overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 20%);
         }
 
+        /* Navbar Styles */
         .navbar {
-            background-color: #ff0000;
-            padding: 15px 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 8px 0;
             position: relative;
             z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            flex: 1;
+        }
+
+        .logo-link {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .logo-link:hover {
+            transform: translateY(-1px);
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-login {
+            background-color: transparent;
+            color: var(--light);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-login:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-register {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1.5px solid var(--light);
+        }
+
+        .btn-register:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-upload:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        /* User Avatar */
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Access Denied Message */
+        .access-denied {
+            text-align: center;
+            padding: 60px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .access-denied-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .access-denied h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+
+        .access-denied p {
+            color: #aaa;
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .access-denied .btn {
+            margin: 10px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            width: 100%;
         }
 
         .container {
@@ -26,203 +211,676 @@
             margin: 0 auto;
             padding: 0 15px;
             display: flex;
-            flex-direction: column; /* Изменено для вертикального выравнивания */
-            align-items: center; /* Центрирование содержимого */
+            flex-direction: column;
+            align-items: center;
         }
 
-        .auth-buttons {
+        .upload-container {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px; /* Добавлено для отступа между кнопками и формой */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
         }
 
-        .btn {
-            padding: 8px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            white-space: nowrap;
+        .upload-header {
+            text-align: center;
+            margin-bottom: 40px;
         }
 
-        .btn-upload {
-            background-color: #ff0000; /* Цвет кнопки выгрузки */
-            color: #fff; /* Цвет текста */
-            border: 1px solid #fff; /* Граница кнопки */
+        .upload-header h2 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
         }
 
-        .btn-login {
-            background-color: #000;
-            color: #fff;
-            border: 1px solid #fff;
+        .upload-header p {
+            color: #aaa;
+            font-size: 18px;
+            max-width: 400px;
         }
 
-        .btn-login:hover {
-            background-color: #333;
+        .upload-form {
+            background-color: var(--gray-darker);
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--gray-light);
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-register {
-            background-color: #fff;
-            color: #000;
-            border: 1px solid #000;
+        .upload-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
         }
 
-        .btn-register:hover {
-            background-color: #ddd;
-        }
-
-        h2 {
-            margin: 20px 0; /* Добавлено для отступа */
-        }
-
-        form {
-            background-color: #222; /* Фон формы */
-            padding: 20px; /* Отступы внутри формы */
-            border-radius: 5px; /* Закругленные углы */
-            width: 100%; /* Ширина формы */
-            max-width: 400px; /* Максимальная ширина формы */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Тень для формы */
-        }
-
-        .mb-3 {
-            margin-bottom: 15px; /* Отступ между элементами формы */
+        .form-group {
+            margin-bottom: 30px;
+            position: relative;
         }
 
         .form-label {
-            display: block; /* Блоковое отображение для меток */
-            margin-bottom: 5px; /* Отступ снизу */
+            display: block;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #ddd;
+            font-size: 18px;
         }
 
         .form-control {
-            width: 100%; /* Ширина полей ввода */
-            padding: 10px; /* Отступы внутри полей ввода */
-            border: 1px solid #444; /* Граница полей ввода */
-            border-radius: 5px; /* Закругленные углы */
-            background-color: #333; /* Фон полей ввода */
-            color: #fff; /* Цвет текста */
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            background-color: var(--gray);
+            color: var(--light);
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
 
         .form-control:focus {
-            border-color: #ff0000; /* Цвет границы при фокусе */
-            outline: none; /* Убираем стандартный контур */
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.2);
+            background-color: #3a3a3a;
+        }
+
+        /* File Input Custom Styling */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 25px;
+            border: 2px dashed var(--gray-light);
+            border-radius: 8px;
+            background-color: rgba(51, 51, 51, 0.3);
+            transition: all 0.3s ease;
+            text-align: center;
+            min-height: 120px;
+            flex-direction: column;
+        }
+
+        .file-input-label:hover {
+            border-color: var(--primary);
+            background-color: rgba(255, 0, 0, 0.05);
+        }
+
+        .file-input-label i {
+            font-size: 32px;
+            color: var(--primary);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #aaa;
+            word-break: break-all;
+            max-width: 100%;
+            padding: 5px 10px;
+            background: var(--gray);
+            border-radius: 4px;
+        }
+
+        /* Progress Bar Styles */
+        .progress-container {
+            width: 100%;
+            background-color: var(--gray);
+            border-radius: 8px;
+            margin-top: 25px;
+            display: none;
+            overflow: hidden;
+            border: 1px solid var(--gray-light);
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 35px;
+            background: linear-gradient(90deg, var(--primary), #ff6666);
+            border-radius: 8px;
+            text-align: center;
+            line-height: 35px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+            display: none;
+        }
+
+        .upload-status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background-color: rgba(0, 255, 0, 0.1);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+
+        .status-error {
+            background-color: rgba(255, 0, 0, 0.1);
+            color: #ff3333;
+            border: 1px solid #ff3333;
+        }
+
+        /* Instructions */
+        .instructions {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(51, 51, 51, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .instructions h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        /* Анимации */
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .upload-form {
+            animation: slideIn 0.6s ease-out;
         }
 
         /* Адаптивность */
         @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 15px;
+            }
+            
+            .logo-link {
+                font-size: 20px;
+            }
+            
+            .btn {
+                padding: 7px 16px;
+                font-size: 13px;
+            }
+            
+            .auth-buttons {
+                gap: 8px;
+            }
+            
+            .upload-form {
+                padding: 30px;
+            }
+            
+            .upload-header h2 {
+                font-size: 32px;
+            }
+            
+            .upload-header p {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 6px 0;
+            }
+            
+            .logo-link {
+                font-size: 18px;
+            }
+            
             .btn {
                 padding: 6px 12px;
-                font-size: 14px;
+                font-size: 12px;
             }
-        }
-
-        @media (max-width: 576px) {
+            
             .auth-buttons {
-                width: 100%;
-                justify-content: center;
-                margin-top: 10px;
+                gap: 6px;
             }
-        }
-
-        /* Прогрессбар */
-        #progressContainer {
-            width: 100%;
-            background-color: #f3f3f3;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        #progressBar {
-            width: 0;
-            height: 30px;
-            background-color: #4caf50;
-            border-radius: 5px;
-            text-align: center;
-            line-height: 30px;
-            color: white;
+            
+            .upload-form {
+                padding: 20px;
+            }
+            
+            .upload-header h2 {
+                font-size: 28px;
+            }
+            
+            .file-input-label {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Выгрузка файла</h1>
-    <input type="file" id="fileInput">
-    <button id="uploadButton" class="">Выгрузить</button>
-    <div id="progressContainer">
-        <div id="progressBar"></div>
-        <span id="progressText">0%</span>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/" class="logo-link">HSETube</a>
+            </div>
+            <div class="auth-buttons">
+                <a href="/login" class="btn btn-login">Вход</a>
+                <a href="/register" class="btn btn-register">Регистрация</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div id="upload-container" class="upload-container" style="display: none;">
+                <div class="upload-header">
+                    <h2>Загрузка видео</h2>
+                    <p>Загрузите ваше видео для публикации на HSETube</p>
+                </div>
+                
+                <div class="upload-form">
+                    <div class="form-group">
+                        <label class="form-label">Выберите видео файл</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="fileInput" accept="video/*">
+                            <div class="file-input-label">
+                                <div>📁 Нажмите для выбора файла</div>
+                                <div style="font-size: 14px; color: #888; margin-top: 5px;">
+                                    Поддерживаемые форматы: MP4, AVI, MOV, MKV
+                                </div>
+                                <div id="fileName" class="file-name"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button id="uploadButton" class="btn btn-upload" style="width: 100%;">
+                            🚀 Начать загрузку
+                        </button>
+                    </div>
+                    
+                    <div id="progressContainer" class="progress-container">
+                        <div id="progressBar" class="progress-bar">0%</div>
+                    </div>
+                    <div id="progressText" class="progress-text"></div>
+                    
+                    <div id="uploadStatus" class="upload-status"></div>
+                    
+                    <div class="instructions">
+                        <h4>📋 Инструкции:</h4>
+                        <ul>
+                            <li>Максимальный размер файла: 2GB</li>
+                            <li>Поддерживаемые форматы: MP4, AVI, MOV, MKV</li>
+                            <li>Рекомендуемое разрешение: 720p или выше</li>
+                            <li>Время обработки зависит от размера файла</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сообщение для неавторизованных пользователей -->
+            <div id="access-denied" class="access-denied" style="display: none;">
+                <div class="access-denied-icon">🔒</div>
+                <h2>Доступ ограничен</h2>
+                <p>Для загрузки видео необходимо войти в систему.</p>
+                <div>
+                    <a href="/login" class="btn btn-login">Войти в аккаунт</a>
+                    <a href="/register" class="btn btn-register">Создать аккаунт</a>
+                </div>
+                <p style="margin-top: 30px; font-size: 14px; color: #777;">
+                    Уже загрузили видео? <a href="/" style="color: var(--primary);">Вернуться на главную</a>
+                </p>
+            </div>
+        </div>
     </div>
 
     <script>
-        document.getElementById('uploadButton').addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+        let currentUser = null;
 
-            if (!file) {
-                alert('Пожалуйста, выберите файл для выгрузки.');
-                return;
+        // Проверка авторизации
+        async function checkAuth() {
+            try {
+                const response = await fetch('/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    return true;
+                } else {
+                    currentUser = null;
+                    return false;
+                }
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+                currentUser = null;
+                return false;
             }
+        }
 
-            uploadFile(file);
-        });
+        // Обновление навигации
+        function updateNavigation() {
+            const authButtons = document.querySelector('.auth-buttons');
+            
+            if (currentUser) {
+                // Пользователь авторизован
+                authButtons.innerHTML = `
+                    <a href="/profile" class="btn btn-login">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <span class="user-avatar">
+                                ${currentUser.username ? currentUser.username.charAt(0).toUpperCase() : 'U'}
+                            </span>
+                            ${currentUser.username || 'Профиль'}
+                        </span>
+                    </a>
+                    <button id="logout-btn" class="btn btn-register">Выйти</button>
+                `;
 
-        function uploadFile(file) {
-            const xhr = new XMLHttpRequest();
-            const formData = new FormData();
-            formData.append('file', file);
+                // Добавляем обработчик для кнопки выхода
+                document.getElementById('logout-btn').addEventListener('click', logoutUser);
+            } else {
+                // Пользователь не авторизован
+                authButtons.innerHTML = `
+                    <a href="/login" class="btn btn-login">Вход</a>
+                    <a href="/register" class="btn btn-register">Регистрация</a>
+                `;
+            }
+        }
 
-            xhr.open('POST', '/upload/video', true);
+        // Функция для выхода
+        async function logoutUser() {
+            try {
+                const response = await fetch('/auth/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
 
-            xhr.upload.addEventListener('progress', function(event) {
-                if (event.lengthComputable) {
-                    const percentComplete = (event.loaded / event.total) * 100;
-                    document.getElementById('progressContainer').style.display = 'block';
-                    document.getElementById('progressBar').style.width = percentComplete + '%';
-                    document.getElementById('progressText').textContent = Math.round(percentComplete) + '%';
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Выход успешен:', data.msg);
+                    
+                    // Обновляем интерфейс
+                    currentUser = null;
+                    updateNavigation();
+                    
+                    // Скрываем форму загрузки и показываем сообщение
+                    document.getElementById('upload-container').style.display = 'none';
+                    document.getElementById('access-denied').style.display = 'block';
+                } else {
+                    throw new Error('Ошибка при выходе');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка выхода:', error);
+                alert('Ошибка при выходе из аккаунта');
+            }
+        }
+
+        function showContentBasedOnAuth(isAuthenticated) {
+            const uploadContainer = document.getElementById('upload-container');
+            const accessDenied = document.getElementById('access-denied');
+            
+            if (isAuthenticated) {
+                uploadContainer.style.display = 'flex';
+                accessDenied.style.display = 'none';
+            } else {
+                uploadContainer.style.display = 'none';
+                accessDenied.style.display = 'block';
+            }
+        }
+
+        async function initUploadPage() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadButton = document.getElementById('uploadButton');
+            const fileNameDisplay = document.getElementById('fileName');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    fileNameDisplay.textContent = file.name;
+                    fileNameDisplay.style.display = 'block';
+                    
+                    if (file.size > 2 * 1024 * 1024 * 1024) {
+                        showStatus('Файл слишком большой. Максимальный размер: 2GB', 'error');
+                        uploadButton.disabled = true;
+                    } else {
+                        uploadButton.disabled = false;
+                        hideStatus();
+                    }
+                } else {
+                    fileNameDisplay.style.display = 'none';
+                    uploadButton.disabled = true;
                 }
             });
 
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    alert('Файл успешно выгружен!');
-                } else if (xhr.status === 401) {
-                    // Если получен статус 401, отправляем запрос на обновление токена
-                    refreshAuthToken().then(() => {
-                        // После успешного обновления токена повторяем загрузку файла
-                        uploadFile(file);
-                    }).catch(() => {
-                        alert('Ошибка при обновлении токена. Пожалуйста, войдите в систему снова.');
-                    });
-                } else {
-                    alert('Ошибка при выгрузке файла. Код ошибки: ' + xhr.status);
+            uploadButton.addEventListener('click', function() {
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    showStatus('Пожалуйста, выберите файл для загрузки', 'error');
+                    return;
                 }
-            };
 
-            xhr.send(formData);
-        }
+                uploadButton.disabled = true;
+                uploadButton.textContent = '⏳ Загрузка...';
+                
+                uploadFile(file);
+            });
 
-        function refreshAuthToken() {
-            return new Promise((resolve, reject) => {
+            function uploadFile(file) {
                 const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/auth/refresh', true); // Замените '/auth/refresh' на ваш URL для обновления токена
+                const formData = new FormData();
+                formData.append('file', file);
+
+                xhr.open('POST', '/upload/video', true);
+
+                progressContainer.style.display = 'block';
+                progressText.style.display = 'block';
+                hideStatus();
+
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.lengthComputable) {
+                        const percentComplete = (event.loaded / event.total) * 100;
+                        const percentRounded = Math.round(percentComplete);
+                        
+                        progressBar.style.width = percentComplete + '%';
+                        progressBar.textContent = percentRounded + '%';
+                        progressText.textContent = `Загружено: ${formatBytes(event.loaded)} из ${formatBytes(event.total)}`;
+                    }
+                });
 
                 xhr.onload = function() {
                     if (xhr.status === 200) {
-                        // Здесь можно обновить токен в локальном хранилище или в переменной
-                        // localStorage.setItem('token', xhr.responseText); // Пример
-                        resolve();
+                        const response = JSON.parse(xhr.responseText);
+                        showStatus('✅ Видео успешно загружено! Обработка начата.', 'success');
+                        
+                        setTimeout(() => {
+                            resetUploadForm();
+                            showStatus('✅ Видео обрабатывается. Вы получите уведомление когда оно будет готово.', 'success');
+                        }, 3000);
+                        
+                    } else if (xhr.status === 401) {
+                        refreshAuthToken().then(() => {
+                            uploadFile(file);
+                        }).catch(() => {
+                            showStatus('❌ Ошибка авторизации. Пожалуйста, войдите в систему снова.', 'error');
+                            resetUploadButton();
+                        });
                     } else {
-                        reject();
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            showStatus(`❌ Ошибка: ${errorData.message || 'Неизвестная ошибка'}`, 'error');
+                        } catch {
+                            showStatus(`❌ Ошибка при загрузке файла. Код ошибки: ${xhr.status}`, 'error');
+                        }
+                        resetUploadButton();
                     }
+                    
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        progressText.style.display = 'none';
+                    }, 2000);
                 };
 
                 xhr.onerror = function() {
-                    reject();
+                    showStatus('❌ Ошибка сети. Проверьте подключение к интернету.', 'error');
+                    resetUploadButton();
+                    progressContainer.style.display = 'none';
+                    progressText.style.display = 'none';
                 };
 
-                xhr.send();
-            });
+                xhr.send(formData);
+            }
+
+            function refreshAuthToken() {
+                return new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/auth/refresh', true);
+
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            resolve();
+                        } else {
+                            reject();
+                        }
+                    };
+
+                    xhr.onerror = function() {
+                        reject();
+                    };
+
+                    xhr.send();
+                });
+            }
+
+            function showStatus(message, type) {
+                uploadStatus.textContent = message;
+                uploadStatus.className = `upload-status status-${type}`;
+                uploadStatus.style.display = 'block';
+            }
+
+            function hideStatus() {
+                uploadStatus.style.display = 'none';
+            }
+
+            function resetUploadButton() {
+                uploadButton.disabled = false;
+                uploadButton.textContent = '🚀 Начать загрузку';
+            }
+
+            function resetUploadForm() {
+                fileInput.value = '';
+                fileNameDisplay.style.display = 'none';
+                resetUploadButton();
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+            }
+
+            function formatBytes(bytes, decimals = 2) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuthenticated = await checkAuth();
+            
+            updateNavigation();
+            
+            showContentBasedOnAuth(isAuthenticated);
+            
+            if (isAuthenticated) {
+                initUploadPage();
+            }
+        });
     </script>
 </body>
 </html>

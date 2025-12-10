@@ -286,6 +286,17 @@
             box-shadow: 0 8px 20px rgba(255, 0, 0, 0.4);
         }
 
+        .btn-upload {
+            background: linear-gradient(135deg, #00cc00, #009900);
+            color: var(--light);
+        }
+
+        .btn-upload:hover {
+            background: linear-gradient(135deg, #009900, #007700);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 255, 0, 0.4);
+        }
+
         .btn-logout {
             background-color: transparent;
             color: var(--light);
@@ -763,6 +774,7 @@
             </div>
             <div class="auth-buttons">
                 <a href="/profile" class="btn btn-login">Профиль</a>
+                <a href="/upload_video" class="btn btn-upload" style="background: linear-gradient(135deg, #00cc00, #009900); color: white;">📹 Загрузить видео</a>
                 <a href="/logout" class="btn btn-register">Выйти</a>
             </div>
         </div>
@@ -812,6 +824,9 @@
                             </div>
                         </div>
                         <div class="profile-actions">
+                            <a href="/upload_video" class="btn btn-profile btn-upload">
+                                📹 Загрузить видео
+                            </a>
                             <button class="btn btn-profile btn-edit">Редактировать профиль</button>
                             <button class="btn btn-profile btn-logout">Выйти из аккаунта</button>
                         </div>
@@ -834,7 +849,12 @@
                     <div id="videos-section" class="videos-section" style="display: none;">
                         <div class="videos-header">
                             <h3>Мои видео</h3>
-                            <div id="videos-count" class="videos-count">0 видео</div>
+                            <div class="videos-actions">
+                                <span id="videos-count" class="videos-count">0 видео</span>
+                                <a href="/upload_video" class="btn btn-upload" style="padding: 8px 16px; font-size: 14px; margin-left: 15px;">
+                                    📹 Новое видео
+                                </a>
+                            </div>
                         </div>
                         <div id="videos-grid" class="videos-grid">
                             <!-- Видео будут добавляться здесь -->
@@ -1024,6 +1044,9 @@
                         <div class="no-videos">
                             <h4>Нет загруженных видео</h4>
                             <p>Загрузите свое первое видео!</p>
+                            <a href="/upload_video" class="btn btn-upload" style="margin-top: 15px; display: inline-block;">
+                                📹 Загрузить первое видео
+                            </a>
                         </div>
                     `;
                 } else {

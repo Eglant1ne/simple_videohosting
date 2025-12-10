@@ -110,7 +110,7 @@ services:
             DEBUG_MODE: ${DEBUG_MODE}
             S3_BUCKET: files
             S3_REGION: us-east-1
-            MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+            MINIO_SERVER_URL: http://${MINIO_SERVER_URL}
             MINIO_ROOT_USER: ${MINIO_ROOT_USER}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
             MINIO_STALE_UPLOADS_EXPIRY: ${MINIO_STALE_UPLOADS_EXPIRY}

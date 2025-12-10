@@ -1,26 +1,22 @@
-FROM ubuntu:latest
+FROM python:3.12.10-slim
 
+# Установка curl для healthcheck и ffmpeg для обработки видео
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    golang-go \
-    git \
-    ffmpeg \
-    ca-certificates \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-WORKDIR /video_postprocess
-ENV GOPATH=/go
-ENV PATH=$PATH:/usr/lib/go/bin:$GOPATH/bin
+WORKDIR /video_postprocess_service
 
+# Копируем зависимости отдельно для лучшего кэширования
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+# Копируем остальной код
 COPY . .
-
-RUN rm -f go.mod
-RUN rm -f go.sum
-RUN go mod init github.com/Eglant1ne/simple_videohosting/services/video_postprocess_service
-RUN go mod tidy
-RUN go build ./cmd/server/
 
 EXPOSE 8090
 
-CMD ["./server"]
+CMD ["python3", "main.py"]
