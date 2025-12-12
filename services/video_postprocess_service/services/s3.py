@@ -30,7 +30,6 @@ class S3Service:
             self.client.create_bucket(Bucket=self.config.bucket)
             print(f"Created bucket {self.config.bucket}")
         
-        # Создаем папку video_files как в Go коде
         try:
             self.client.put_object(
                 Bucket=self.config.bucket,
@@ -41,7 +40,6 @@ class S3Service:
         except Exception as e:
             print(f"Folder {self.video_files_folder} already exists or error: {e}")
         
-        # Настраиваем политику доступа для публичного чтения video_files/*
         policy = {
             "Version": "2012-10-17",
             "Statement": [
@@ -75,7 +73,6 @@ class S3Service:
         """Загрузка файла в S3 (аналог FPutObject)."""
         loop = asyncio.get_event_loop()
         
-        # Определяем content_type как в Go
         content_type = self._get_content_type(local_path)
         
         await loop.run_in_executor(
