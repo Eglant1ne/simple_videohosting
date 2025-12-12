@@ -23,7 +23,6 @@ class VideoProcessor:
         self.channel = await self.connection.channel()
         await self.channel.set_qos(prefetch_count=1)
         
-        # Объявляем очереди как в Go коде
         await self.channel.declare_queue("convert_video_to_hls", durable=True)
         await self.channel.declare_queue("confirm_video_hls_converting", durable=True)
         
@@ -43,10 +42,8 @@ class VideoProcessor:
             message_body = message.body.decode()
             print(f"Received message: {message_body}")
             
-            # Парсим JSON как в Go коде
             data = json.loads(message_body)
             
-            # Проверяем обязательные поля как в Go
             if 'video_path' not in data or 'uuid' not in data:
                 print(f"Missing required fields: {data}")
                 await message.ack()
@@ -69,7 +66,7 @@ class VideoProcessor:
             await message.nack(requeue=False)
     
     async def process_video(self, data: Dict[str, Any]):
-        """Основной метод обработки видео (аналог Go processVideo)."""
+        """Основной метод обработки видео."""
         try:
             video_path = data['video_path']
             video_uuid = data['uuid']
@@ -79,16 +76,13 @@ class VideoProcessor:
             with tempfile.TemporaryDirectory(prefix=video_uuid) as temp_dir:
                 input_file = os.path.join(temp_dir, os.path.basename(video_path))
                 
-                # 1. Скачиваем видео из MinIO (аналог FGetObject)
                 print(f"Downloading video from MinIO: {video_path}")
                 await self.s3_service.download_file(video_path, input_file)
                 
-                # 2. Получаем информацию о видео (аналог getVideoResolution)
                 print("Getting video resolution...")
                 width, height = await self.get_video_resolution(input_file)
                 print(f"Video resolution: {width}x{height}")
                 
-                # 3. Определяем поддерживаемые разрешения как в Go
                 resolutions = [
                     (3840, 2160),  # 4k
                     (2560, 1440),  # 2k
@@ -99,37 +93,31 @@ class VideoProcessor:
                     (426, 240),    # 240p
                 ]
                 
-                supported_res = ["256:144"]  # 144p всегда включаем
+                supported_res = ["256:144"]
                 for w, h in resolutions:
                     if w <= width and h <= height:
                         supported_res.append(f"{w}:{h}")
                 
                 print(f"Supported resolutions: {supported_res}")
                 
-                # 4. Конвертируем в HLS для каждого разрешения
                 output_dir = os.path.join(temp_dir, "hls")
                 os.makedirs(output_dir, exist_ok=True)
                 
                 for resolution in supported_res:
                     await self.convert_to_hls(input_file, video_uuid, resolution, output_dir)
                 
-                # 5. Создаем мастер-плейлист
                 await self.create_master_playlist(video_uuid, supported_res, output_dir)
                 
-                # 6. Загружаем HLS файлы в MinIO (аналог FPutObject)
                 print("Uploading HLS files to MinIO...")
                 for filename in os.listdir(output_dir):
                     local_path = os.path.join(output_dir, filename)
-                    # Путь как в Go: VideoFilesFolder/uuid/filename
                     s3_path = f"video_files/{video_uuid}/{filename}"
                     await self.s3_service.upload_file(local_path, s3_path)
                     print(f"Uploaded: {s3_path}")
                 
-                # 7. Удаляем оригинальное видео (аналог RemoveObject)
                 print(f"Removing original video: {video_path}")
                 await self.s3_service.delete_file(video_path)
                 
-                # 8. Отправляем подтверждение (аналог sendConfirmation)
                 await self.send_confirmation(video_uuid)
                 
                 print(f"Video processing completed successfully: {video_uuid}")
@@ -140,7 +128,7 @@ class VideoProcessor:
             return False
     
     async def get_video_resolution(self, file_path: str) -> tuple[int, int]:
-        """Получение разрешения видео через ffprobe (аналог getVideoResolution в Go)."""
+        """Получение разрешения видео через ffprobe"""
         try:
             cmd = [
                 'ffprobe',
@@ -173,7 +161,7 @@ class VideoProcessor:
             raise
     
     async def convert_to_hls(self, input_file: str, video_uuid: str, resolution: str, output_dir: str):
-        """Конвертация в HLS используя прямое выполнение команд FFmpeg как в Go."""
+        """Конвертация в HLS используя прямое выполнение команд FFmpeg"""
         try:
             res_parts = resolution.split(":")
             res_name = f"{res_parts[1]}p-{video_uuid}"
@@ -181,7 +169,6 @@ class VideoProcessor:
             
             print(f"Converting to {resolution} -> {res_name}")
             
-            # Строим команду как в Go коде
             cmd = [
                 'ffmpeg',
                 '-i', input_file,
@@ -213,7 +200,6 @@ class VideoProcessor:
                 print(f"FFmpeg error output: {error_output}")
                 raise Exception(f"FFmpeg command failed with return code {process.returncode}")
             
-            # Проверяем что выходной файл создан
             if not os.path.exists(output_file):
                 raise FileNotFoundError(f"Output file {output_file} was not created")
                 
@@ -249,7 +235,7 @@ class VideoProcessor:
         return bitrates.get(height, 500000)
     
     async def send_confirmation(self, video_uuid: str):
-        """Отправка подтверждения (аналог sendConfirmation в Go)."""
+        """Отправка подтверждения."""
         message = {"uuid": video_uuid}
         await self.channel.default_exchange.publish(
             aio_pika.Message(
